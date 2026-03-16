@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { GraphData, GraphNode, GraphLink } from "@/types";
 import { LINK_COLORS } from "@/constants/linkColors";
+import { drawElectricEdge } from "@/utils/electricEdge";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
@@ -147,6 +148,13 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
   // fgRef が未準備の場合にフォーカス効果をリトライするためのカウンター
   const [graphReadyRetry, setGraphReadyRetry] = useState(0);
 
+  // ─── 電流アニメーション用 ref ────────────────────────────────────────────
+  const animFrameRef      = useRef<number>(0);
+  const reheatCounterRef  = useRef(0);
+  const selectedNodeIdRef = useRef<string | null>(null); // rAFループで参照するため
+  const introPlayedRef    = useRef(false);
+  const [introRetry, setIntroRetry] = useState(0);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -157,6 +165,54 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
     setDimensions({ width: el.clientWidth, height: el.clientHeight });
     return () => ob.disconnect();
   }, []);
+
+  // ─── selectedNodeId を ref で追跡（rAFループ内での参照用） ─────────────
+  // フォーカスモード（クリック時）のみシミュレーションを維持する
+  // ホバー時のリヒートはノードが「逃げる」原因になるため行わない
+  useEffect(() => {
+    selectedNodeIdRef.current = selectedNodeId;
+    if (!selectedNodeId) reheatCounterRef.current = 0;
+  }, [selectedNodeId]);
+
+  // ─── rAFループ：フォーカスモード中のみシミュレーションを維持して再描画を促す ─
+  useEffect(() => {
+    const tick = () => {
+      if (selectedNodeIdRef.current && fgRef.current) {
+        reheatCounterRef.current++;
+        if (reheatCounterRef.current >= 28) {
+          fgRef.current.d3ReheatSimulation();
+          reheatCounterRef.current = 0;
+        }
+      }
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+    animFrameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animFrameRef.current);
+  }, []); // マウント時1回だけ起動
+
+  // ─── ズームイン初期演出（初回ロード時のみ） ─────────────────────────────
+  useEffect(() => {
+    if (introPlayedRef.current || graphData.nodes.length === 0) return;
+    const fg = fgRef.current;
+    if (!fg) {
+      // ForceGraph2D がまだ dynamic import 中 → リトライ
+      const t = setTimeout(() => setIntroRetry((n) => n + 1), 300);
+      return () => clearTimeout(t);
+    }
+    introPlayedRef.current = true;
+    let t2: ReturnType<typeof setTimeout>;
+    const t1 = setTimeout(() => {
+      if (!fgRef.current) return;
+      fgRef.current.zoom(2.8, 0);        // 瞬時に拡大（0ms）
+      t2 = setTimeout(() => {
+        // ノード数に応じて自動フィット（少ない→高ズーム、多い→全体表示）
+        // padding=60px でノードがギリギリ切れないように余白確保
+        fgRef.current?.zoomToFit(1800, 60);
+      }, 400);
+    }, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphData.nodes.length, introRetry]);
 
   // ─── フォーカスモード：選択ノードの隣接ノードセットを計算 ───────────────
   const neighborSet = useMemo<Set<string> | null>(() => {
@@ -342,7 +398,8 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
 
       const baseR = RANK_SIZE[rank] ?? 6;
       // 選択ノードは少し大きく、ホバーノードも少し大きく
-      const r = baseR * (isActive ? 1 : 0.85) * (isSelected ? 1.25 : isHovered ? 1.15 : 1.0);
+      // ホバー時のスケールアップを廃止（ノードが「逃げる」原因になるため）
+      const r = baseR * (isActive ? 1 : 0.85) * (isSelected ? 1.25 : 1.0);
       const fillColor = isActive
         ? (RANK_COLOR_ACTIVE[rank] ?? RETIRED_COLOR)
         : RETIRED_COLOR;
@@ -395,7 +452,8 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       }
 
       // メインサークル（写真 or 色塗り）
-      if (n.photo_url && isActive && globalScale >= 1.2) {
+      // 写真表示閾値を下げて、初期ズームでも誰なのかわかるようにする
+      if (n.photo_url && isActive && globalScale >= 0.85) {
         let img = imageCache.current.get(n.photo_url);
         if (!img) {
           img = new Image();
@@ -437,10 +495,13 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       // ラベル：
       //  - フォーカスモードではネイバー全員に常時表示
       //  - 通常モードではズームインまたは選択時のみ
+      // 横綱・大関(baseR>=14)は低ズームでも名前を表示
+      // 全員は 1.2x 以上で表示（1.5 → 1.2 に引き下げ）
       const showLabel =
         isSelected ||
         (neighborSet && neighborSet.has(n.id)) ||
-        globalScale >= 1.5;
+        globalScale >= 1.2 ||
+        (baseR >= 14 && globalScale >= 0.75);
 
       if (showLabel) {
         const fontSize = Math.max(isSelected ? 13 / globalScale : 10 / globalScale, 3);
@@ -556,6 +617,36 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       return w >= 4 ? 2 : 0;
     },
     [selectedNodeId, neighborSet]
+  );
+
+  // ─── 電流エッジ描画（ホバー時のみ・非フォーカスモード限定） ─────────────
+  // クリック後はエッジが多すぎて鬱陶しいため、ホバー中だけ電流を見せる
+  const linkCanvasObject = useCallback(
+    (link: object, ctx: CanvasRenderingContext2D) => {
+      // フォーカスモード（クリック後）は電流なし
+      if (neighborSet) return;
+      // ホバー中でなければスキップ
+      if (!hoveredNodeId) return;
+
+      const l = link as GraphLink;
+      const srcId = getLinkEndId(l.source);
+      const tgtId = getLinkEndId(l.target);
+      const isRelated = srcId === hoveredNodeId || tgtId === hoveredNodeId;
+      if (!isRelated) return; // ホバーノードに接続していないエッジはスキップ
+
+      const src = l.source as GraphNode;
+      const tgt = l.target as GraphNode;
+      if (src.x == null || src.y == null || tgt.x == null || tgt.y == null) return;
+
+      drawElectricEdge(
+        ctx,
+        src.x, src.y,
+        tgt.x, tgt.y,
+        LINK_COLORS[l.type] ?? "#6b7280",
+        l.weight ?? 1,
+      );
+    },
+    [hoveredNodeId, neighborSet],
   );
 
   // ─── ホバーノード（リッチツールチップ用） ────────────────────────────────
@@ -688,11 +779,17 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
         }}
         linkColor={linkColor as any}
         linkWidth={linkWidth as any}
+        linkCanvasObject={linkCanvasObject as any}
+        linkCanvasObjectMode={() => "after"}
         linkDirectionalParticles={2}
         linkDirectionalParticleWidth={particleWidth as any}
         linkDirectionalParticleColor={linkColor as any}
         onNodeClick={(node: any) => onNodeClick(node as GraphNode)}
-        onNodeHover={(node: any) => setHoveredNodeId(node ? (node as GraphNode).id : null)}
+        onNodeHover={(node: any) => {
+          setHoveredNodeId(node ? (node as GraphNode).id : null);
+          // ※ d3ReheatSimulation はここでは呼ばない
+          // 　 ホバーのたびに呼ぶとノードが「逃げる」原因になるため
+        }}
         onBackgroundClick={() => onBackgroundClick?.()}
         onLinkHover={(link: any) => {
           if (!link) {
