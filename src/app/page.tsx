@@ -7,11 +7,14 @@ import { useSearchParams } from "next/navigation";
 import FilterPanel from "@/components/FilterPanel";
 import GraphSearch from "@/components/GraphSearch";
 import RikishiDetail from "@/components/RikishiDetail";
+import AuthButton from "@/components/AuthButton";
+import PreviewRoleBanner from "@/components/PreviewRoleBanner";
 import { LINK_COLORS } from "@/constants/linkColors";
 import { getRegion, getAgeGroup } from "@/constants/regions";
 import { CURATED_THEMES, pickRandomTheme, type CuratedTheme } from "@/constants/themes";
 import type { FilterState, GraphData, GraphNode, RelationType } from "@/types";
 import { RANK_DIVISION_CLASSES } from "@/types";
+import { useAuthRole, hasRole, type Role } from "@/hooks/useAuthRole";
 
 function getLinkNodeId(endpoint: string | { id: string }): string {
   return typeof endpoint === "object" ? endpoint.id : endpoint;
@@ -101,6 +104,14 @@ function HomePageContent() {
   const [loading, setLoading]         = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // ─ 認証・ロール
+  const { role } = useAuthRole();
+  // admin がなりすまし確認するためのプレビューロール
+  // 初期値は 'admin'（= 実際のadmin表示）、nullは「未ログイン状態として見る」
+  const [previewRole, setPreviewRole] = useState<Role>("admin");
+  // 実際に表示制御に使うロール（admin以外は previewRole を無視）
+  const effectiveRole: Role = role === "admin" ? previewRole : role;
+
   // フローティングテーマパネルのドラッグ位置
   const [themePos, setThemePos] = useState({ x: 16, y: 16 });
   const themeDragOffset = useRef({ x: 0, y: 0 });
@@ -120,18 +131,17 @@ function HomePageContent() {
     window.addEventListener("mouseup", handleUp);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themePos]);
+
   const [hiddenWarning, setHiddenWarning] = useState<{ id: string; shikona: string } | null>(null);
   // フォーカス専用: 全ノード・全関係を含む完全グラフ（フィルター無視）
-  // 初回フォーカス時に一度だけ取得してキャッシュする
   const [fullGraphData, setFullGraphData] = useState<GraphData | null>(null);
 
   // ─ テーマ（初期値は固定＝Hydration安全、マウント後にランダム選択）
   const [activeTheme, setActiveTheme] = useState<CuratedTheme>(CURATED_THEMES[0]);
   const [filter, setFilter] = useState<FilterState>(() => applyTheme(CURATED_THEMES[0]));
-  // DB から取得したテーマ一覧（null = 未取得 or 取得失敗）
   const [fetchedThemes, setFetchedThemes] = useState<CuratedTheme[] | null>(null);
 
-  // マウント後: APIからテーマ一覧を取得してランダム選択（SSR/CSR不一致を防ぐため useEffect で実行）
+  // マウント後: APIからテーマ一覧を取得してランダム選択
   useEffect(() => {
     fetch("/api/themes")
       .then((r) => r.json())
@@ -153,14 +163,12 @@ function HomePageContent() {
           setActiveTheme(theme);
           setFilter(applyTheme(theme));
         } else {
-          // DB にテーマがなければ静的フォールバック
           const theme = pickRandomTheme();
           setActiveTheme(theme);
           setFilter(applyTheme(theme));
         }
       })
       .catch(() => {
-        // API エラー時も静的フォールバック
         const theme = pickRandomTheme();
         setActiveTheme(theme);
         setFilter(applyTheme(theme));
@@ -168,7 +176,6 @@ function HomePageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // テーマ変更時に showAllRanks も同期
   const applyNewTheme = useCallback((theme: CuratedTheme) => {
     setActiveTheme(theme);
     setFilter(applyTheme(theme));
@@ -187,18 +194,15 @@ function HomePageContent() {
 
   // ─ 表示ノードのフィルタリング
   const visibleGraphData = useMemo<GraphData>(() => {
-    // まず API データにクライアントサイドフィルター（地域・学歴・年齢・キャリア）を適用
-    const clientFiltered: GraphData = (() => {
-      const hasClientFilter =
-        filter.regions.length > 0 ||
-        filter.educations.length > 0 ||
-        filter.ageGroups.length > 0 ||
-        filter.careerTrends.length > 0 ||
-        filter.careerStages.length > 0 ||
-        filter.promotionSpeeds.length > 0;
+    const hasClientFilter =
+      filter.regions.length > 0 ||
+      filter.educations.length > 0 ||
+      filter.ageGroups.length > 0 ||
+      filter.careerTrends.length > 0 ||
+      filter.careerStages.length > 0 ||
+      filter.promotionSpeeds.length > 0;
 
-      if (!hasClientFilter) return graphData;
-
+    const clientFiltered: GraphData = hasClientFilter ? (() => {
       const visibleIds = new Set(
         graphData.nodes.filter((n) => matchesClientFilter(n, filter)).map((n) => n.id)
       );
@@ -210,10 +214,9 @@ function HomePageContent() {
             visibleIds.has(getLinkNodeId(l.target))
         ),
       };
-    })();
+    })() : graphData;
 
     if (!selectedId) {
-      // 番付フィルター: rankDivisions が空 = すべて表示, 非空 = 指定番付のみ
       if (filter.rankDivisions.length > 0) {
         const allowed = new Set(
           filter.rankDivisions.flatMap((d) => RANK_DIVISION_CLASSES[d] ?? [])
@@ -235,9 +238,6 @@ function HomePageContent() {
       return clientFiltered;
     }
 
-    // フォーカス: 全データ（フィルター無視）から weight≥2 で繋がるノードのみ
-    // エッジはフォーカス力士⇔各neighbor の直接エッジのみ（neighbor間は表示しない）
-    // fullGraphData がロード完了するまでは graphData で代替
     const source = fullGraphData ?? graphData;
     const neighborWeights = new Map<string, number>();
     for (const link of source.links) {
@@ -299,7 +299,7 @@ function HomePageContent() {
     setHiddenWarning(null);
   }, [filter, fetchGraph]);
 
-  // フォーカス専用データ: 初回フォーカス時にフィルターなし全データを1回だけ取得
+  // フォーカス専用データ
   useEffect(() => {
     if (!selectedId || fullGraphData) return;
     fetch("/api/graph?era=全員")
@@ -341,62 +341,115 @@ function HomePageContent() {
     [graphData.nodes]
   );
 
-  // フィルター変更時はテーマ表示をクリア（手動変更を示す）
   const handleFilterChange = useCallback((f: FilterState) => {
     setFilter(f);
   }, []);
 
+  // 番付・管理タブへのアクセス権
+  const canAccessBanzuke = hasRole(effectiveRole, "paid");
+  const canAccessAdmin   = hasRole(effectiveRole, "editor");
+
   return (
     <div className="flex h-screen overflow-hidden bg-stone-950 relative">
+
+      {/* admin なりすましバナー */}
+      {role === "admin" && (
+        <PreviewRoleBanner
+          previewRole={previewRole}
+          onChangePreview={setPreviewRole}
+        />
+      )}
+
       {/* 左サイドバー */}
       <div
         className={`flex-shrink-0 transition-all duration-300 ${
           sidebarOpen ? "w-64" : "w-0 overflow-hidden"
-        }`}
+        } ${role === "admin" ? "pt-9" : ""}`}
       >
         <div className="w-64 h-full flex flex-col p-3 gap-3 overflow-y-auto border-r border-stone-800">
 
-          {/* タイトル */}
-          <div className="pt-2">
-            <h1 className="text-amber-400 font-bold text-xl">🏆 相撲相関図</h1>
-            <p className="text-stone-500 text-xs mt-0.5">
-              {selectedId
-                ? `フォーカス中 • ${visibleGraphData.nodes.length}人`
-                : filter.rankDivisions.length === 0
-                  ? `全番付 • ${visibleGraphData.nodes.length}人 / ${visibleGraphData.links.length}件`
-                  : `${filter.rankDivisions.join("+")} • ${visibleGraphData.nodes.length}人 / ${visibleGraphData.links.length}件`}
-            </p>
+          {/* タイトル + ログインボタン */}
+          <div className="pt-2 flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h1 className="text-amber-400 font-bold text-xl">🏆 相撲相関図</h1>
+              <p className="text-stone-500 text-xs mt-0.5">
+                {selectedId
+                  ? `フォーカス中 • ${visibleGraphData.nodes.length}人`
+                  : filter.rankDivisions.length === 0
+                    ? `全番付 • ${visibleGraphData.nodes.length}人 / ${visibleGraphData.links.length}件`
+                    : `${filter.rankDivisions.join("+")} • ${visibleGraphData.nodes.length}人 / ${visibleGraphData.links.length}件`}
+              </p>
+            </div>
+            <div className="flex-shrink-0 pt-1">
+              <AuthButton />
+            </div>
           </div>
 
           {/* ナビゲーション */}
           <div className="flex gap-1.5">
+            {/* 相関図（現在地） */}
             <span className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-amber-600/20
               border border-amber-600/40 text-amber-400 font-medium">
               相関図
             </span>
-            <Link href="/banzuke"
-              className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-800
-                border border-stone-700 text-stone-300 hover:text-amber-400
-                hover:border-amber-500 hover:bg-stone-700 transition-colors font-medium"
-            >
-              番付
-            </Link>
-            <Link href="/admin"
-              className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-800
-                border border-stone-700 text-stone-300 hover:text-amber-400
-                hover:border-amber-500 hover:bg-stone-700 transition-colors font-medium"
-            >
-              管理
-            </Link>
+
+            {/* 番付: paid 以上で解禁 */}
+            {canAccessBanzuke ? (
+              <Link href="/banzuke"
+                className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-800
+                  border border-stone-700 text-stone-300 hover:text-amber-400
+                  hover:border-amber-500 hover:bg-stone-700 transition-colors font-medium"
+              >
+                番付
+              </Link>
+            ) : (
+              <span
+                className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-900
+                  border border-stone-800 text-stone-600 font-medium cursor-default
+                  flex items-center justify-center gap-0.5"
+                title="有料プランで解禁"
+              >
+                🔒 番付
+              </span>
+            )}
+
+            {/* 管理: editor 以上で解禁 */}
+            {canAccessAdmin ? (
+              <Link href="/admin"
+                className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-800
+                  border border-stone-700 text-stone-300 hover:text-amber-400
+                  hover:border-amber-500 hover:bg-stone-700 transition-colors font-medium"
+              >
+                管理
+              </Link>
+            ) : (
+              <span
+                className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-900
+                  border border-stone-800 text-stone-600 font-medium cursor-default"
+                title="editor 以上で利用可能"
+              >
+                🔒 管理
+              </span>
+            )}
           </div>
 
-
-
-          <FilterPanel
-            filter={filter}
-            onChange={handleFilterChange}
-            heyaOptions={heyaOptions}
-          />
+          {/* 絞り込みパネル: paid 以上で解禁 */}
+          {canAccessBanzuke ? (
+            <FilterPanel
+              filter={filter}
+              onChange={handleFilterChange}
+              heyaOptions={heyaOptions}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 py-6
+              bg-stone-900/60 border border-stone-800 rounded-xl text-center">
+              <span className="text-2xl">🔒</span>
+              <p className="text-stone-400 text-xs font-medium">絞り込みは有料プラン</p>
+              <p className="text-stone-600 text-xs leading-relaxed px-2">
+                部屋・一門・出身地など<br />詳細フィルターを利用できます
+              </p>
+            </div>
+          )}
 
           <Legend />
         </div>
@@ -405,16 +458,20 @@ function HomePageContent() {
       {/* サイドバー開閉ボタン */}
       <button
         onClick={() => setSidebarOpen((v) => !v)}
-        className="absolute top-1/2 -translate-y-1/2 z-20 bg-stone-800 hover:bg-stone-700
+        className="absolute z-20 bg-stone-800 hover:bg-stone-700
           text-stone-300 w-5 h-12 flex items-center justify-center rounded-r-lg
           border border-stone-700 border-l-0 transition-all"
-        style={{ left: sidebarOpen ? "256px" : "0px" }}
+        style={{
+          left: sidebarOpen ? "256px" : "0px",
+          top: role === "admin" ? "calc(50% + 18px)" : "50%",
+          transform: "translateY(-50%)",
+        }}
       >
         {sidebarOpen ? "‹" : "›"}
       </button>
 
       {/* メイン：グラフ */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className={`flex-1 relative overflow-hidden ${role === "admin" ? "pt-9" : ""}`}>
         {/* 検索ボックス */}
         <div className="absolute top-3 left-4 z-10 flex flex-col gap-2">
           <GraphSearch onSelect={handleSearch} />
@@ -469,7 +526,6 @@ function HomePageContent() {
                 ✦ 今の切り口
               </span>
               <div className="flex items-center gap-2">
-                {/* グリップドット */}
                 <div className="flex gap-[3px] opacity-40">
                   {[0,1,2,3,4,5].map(i => (
                     <span key={i} className="w-[3px] h-[3px] rounded-full bg-stone-400 block" />
