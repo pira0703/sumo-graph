@@ -77,19 +77,18 @@ function HeyaMultiSelect({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full bg-stone-800 border border-stone-600 rounded-lg px-3 py-1.5
-          text-stone-200 text-xs focus:outline-none text-left flex justify-between items-center
-          hover:border-stone-500 transition-colors"
+        className="w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none text-left flex justify-between items-center transition-colors"
+        style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--ink)" }}
       >
-        <span className={selected.length > 0 ? "text-amber-400" : ""}>{label}</span>
-        <span className="text-stone-500 text-[10px] ml-1">{open ? "▲" : "▼"}</span>
+        <span style={{ color: selected.length > 0 ? "var(--purple)" : "var(--ink-muted)" }}>{label}</span>
+        <span className="text-[10px] ml-1" style={{ color: "var(--ink-muted)" }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-stone-800 border border-stone-600
-          rounded-lg z-50 max-h-52 overflow-y-auto shadow-xl">
+        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg z-50 max-h-52 overflow-y-auto shadow-xl"
+          style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
           <button
-            className="w-full px-3 py-2 text-xs text-left text-stone-400 hover:bg-stone-700
-              border-b border-stone-700 transition-colors"
+            className="w-full px-3 py-2 text-xs text-left transition-colors"
+            style={{ color: "var(--ink-muted)", borderBottom: "1px solid var(--border)" }}
             onClick={() => onChange([])}
           >
             すべての部屋（解除）
@@ -97,14 +96,15 @@ function HeyaMultiSelect({
           {options.map((opt) => (
             <label
               key={opt.id}
-              className="flex items-center gap-2 px-3 py-1.5 hover:bg-stone-700
-                cursor-pointer text-xs text-stone-200 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs transition-colors"
+              style={{ color: "var(--ink)" }}
             >
               <input
                 type="checkbox"
                 checked={selected.includes(opt.id)}
                 onChange={() => toggle(opt.id)}
-                className="accent-amber-500 shrink-0"
+                className="shrink-0"
+                style={{ accentColor: "var(--purple)" }}
               />
               {opt.name}
             </label>
@@ -140,9 +140,11 @@ function MultiToggle<T extends string>({
     <div className={`flex gap-1.5 ${wrap ? "flex-wrap" : ""}`}>
       <button
         onClick={() => onChange([])}
-        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-          isAll ? "bg-amber-500 text-black" : "bg-stone-700 text-stone-300 hover:bg-stone-600"
-        }`}
+        className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+        style={isAll
+          ? { backgroundColor: "var(--purple)", color: "white" }
+          : { backgroundColor: "var(--washi)", color: "var(--ink-muted)", border: "1px solid var(--border)" }
+        }
       >
         すべて
       </button>
@@ -158,21 +160,22 @@ function MultiToggle<T extends string>({
             style={
               color
                 ? {
-                    backgroundColor: active ? color : "rgb(68,64,60)",
-                    color: active ? "white" : "rgb(214,211,209)",
-                    opacity: !isAll && !active ? 0.4 : 1,
+                    backgroundColor: active ? color : "var(--washi)",
+                    color: active ? "white" : "var(--ink-muted)",
+                    border: active ? "none" : "1px solid var(--border)",
+                    opacity: !isAll && !active ? 0.45 : 1,
                   }
-                : undefined
+                : {
+                    backgroundColor: active
+                      ? "var(--purple)"
+                      : !isAll
+                      ? "var(--washi)"
+                      : "var(--washi)",
+                    color: active ? "white" : !isAll ? "var(--border-dark)" : "var(--ink-muted)",
+                    border: active ? "none" : "1px solid var(--border)",
+                    opacity: !isAll && !active ? 0.6 : 1,
+                  }
             }
-            {...(!color && {
-              className: `px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                active
-                  ? "bg-amber-500 text-black"
-                  : !isAll
-                  ? "bg-stone-700 text-stone-500"
-                  : "bg-stone-700 text-stone-300 hover:bg-stone-600"
-              }`,
-            })}
           >
             {label}
           </button>
@@ -187,8 +190,8 @@ function SectionHeader({ icon, label }: { icon: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5 mb-3">
       <span className="text-sm">{icon}</span>
-      <span className="text-xs font-semibold text-stone-300 tracking-wide">{label}</span>
-      <div className="flex-1 h-px bg-stone-700 ml-1" />
+      <span className="text-xs font-semibold tracking-wide" style={{ color: "var(--purple)" }}>{label}</span>
+      <div className="flex-1 h-px ml-1" style={{ backgroundColor: "var(--border)" }} />
     </div>
   );
 }
@@ -223,26 +226,26 @@ export default function FilterPanel({
   };
 
   return (
-    <div className="bg-stone-900 border border-stone-700 rounded-xl p-4 text-sm text-stone-200 space-y-5">
+    <div className="rounded-xl p-4 text-sm space-y-5" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}>
 
       {/* ══ ノードの絞り込み ══════════════════════════════════════════════════ */}
       <div>
-        <SectionHeader icon="🔵" label="ノードの絞り込み" />
+        <SectionHeader icon="🔵" label="力士の絞り込み" />
         <div className="space-y-3">
 
           {/* 時代 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">時代</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>時代</p>
             <div className="flex gap-1.5">
               {(["全員", "現役", "引退"] as const).map((e) => (
                 <button
                   key={e}
                   onClick={() => onChange({ ...filter, era: e })}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    filter.era === e
-                      ? "bg-amber-500 text-black"
-                      : "bg-stone-700 text-stone-300 hover:bg-stone-600"
-                  }`}
+                  className="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                  style={filter.era === e
+                    ? { backgroundColor: "var(--purple)", color: "white" }
+                    : { backgroundColor: "var(--washi)", color: "var(--ink-muted)", border: "1px solid var(--border)" }
+                  }
                 >
                   {e}
                 </button>
@@ -252,7 +255,7 @@ export default function FilterPanel({
 
           {/* 番付 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">番付</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>番付</p>
             <MultiToggle<RankDivision>
               options={RANK_DIVISION_LIST}
               selected={filter.rankDivisions}
@@ -262,7 +265,7 @@ export default function FilterPanel({
 
           {/* 部屋 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">部屋</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>部屋</p>
             <HeyaMultiSelect
               options={heyaOptions}
               selected={filter.heyas}
@@ -272,15 +275,15 @@ export default function FilterPanel({
 
           {/* 一門 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">一門</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>一門</p>
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => onChange({ ...filter, ichimons: [] })}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                  filter.ichimons.length === 0
-                    ? "bg-amber-500 text-black"
-                    : "bg-stone-700 text-stone-300 hover:bg-stone-600"
-                }`}
+                className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+                style={filter.ichimons.length === 0
+                  ? { backgroundColor: "var(--purple)", color: "white" }
+                  : { backgroundColor: "var(--washi)", color: "var(--ink-muted)", border: "1px solid var(--border)" }
+                }
               >
                 すべて
               </button>
@@ -292,13 +295,13 @@ export default function FilterPanel({
                   <button
                     key={name}
                     onClick={() => toggleIchimon(name)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                      active
-                        ? "bg-teal-600 text-white"
-                        : filter.ichimons.length > 0
-                        ? "bg-stone-700 text-stone-500"
-                        : "bg-stone-700 text-stone-300 hover:bg-stone-600"
-                    }`}
+                    className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                    style={active
+                      ? { backgroundColor: "var(--purple)", color: "white" }
+                      : filter.ichimons.length > 0
+                      ? { backgroundColor: "var(--washi)", color: "var(--border-dark)", border: "1px solid var(--border)", opacity: 0.5 }
+                      : { backgroundColor: "var(--washi)", color: "var(--ink-muted)", border: "1px solid var(--border)" }
+                    }
                   >
                     {short}
                   </button>
@@ -309,7 +312,7 @@ export default function FilterPanel({
 
           {/* 出身地域 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">出身地域</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>出身地域</p>
             <MultiToggle<string>
               options={REGION_LABELS}
               selected={filter.regions}
@@ -319,7 +322,7 @@ export default function FilterPanel({
 
           {/* 学歴 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">学歴</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>学歴</p>
             <MultiToggle<EducationFilter>
               options={EDUCATION_LABELS}
               selected={filter.educations}
@@ -329,7 +332,7 @@ export default function FilterPanel({
 
           {/* 年齢 */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">年齢</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>年齢</p>
             <MultiToggle<AgeGroupFilter>
               options={AGE_GROUP_LABELS}
               selected={filter.ageGroups}
@@ -339,7 +342,7 @@ export default function FilterPanel({
 
           {/* キャリアトレンド */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">キャリアトレンド</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>キャリアトレンド</p>
             <MultiToggle<CareerTrend>
               options={CAREER_TREND_LIST}
               selected={filter.careerTrends}
@@ -350,7 +353,7 @@ export default function FilterPanel({
 
           {/* キャリアステージ */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">キャリアステージ</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>キャリアステージ</p>
             <MultiToggle<CareerStage>
               options={CAREER_STAGE_LIST}
               selected={filter.careerStages}
@@ -361,7 +364,7 @@ export default function FilterPanel({
 
           {/* 昇進スピード */}
           <div>
-            <p className="text-stone-400 text-xs mb-1.5">昇進スピード</p>
+            <p className="text-xs mb-1.5" style={{ color: "var(--ink-muted)" }}>昇進スピード</p>
             <MultiToggle<PromotionSpeed>
               options={PROMOTION_SPEED_LIST}
               selected={filter.promotionSpeeds}
@@ -374,22 +377,22 @@ export default function FilterPanel({
       </div>
 
       {/* セパレーター */}
-      <div className="border-t border-stone-700" />
+      <div className="border-t" style={{ borderColor: "var(--border)" }} />
 
       {/* ══ エッジの表示条件 ══════════════════════════════════════════════════ */}
       <div>
-        <SectionHeader icon="🔗" label="エッジの表示条件" />
+        <SectionHeader icon="🔗" label="えにしの種類" />
 
         {/* 関係の種類 */}
         <div>
           <div className="flex gap-1.5 flex-wrap">
             <button
               onClick={() => onChange({ ...filter, relation_types: [] })}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                isAllRelations
-                  ? "bg-amber-500 text-black"
-                  : "bg-stone-700 text-stone-300 hover:bg-stone-600"
-              }`}
+              className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+              style={isAllRelations
+                ? { backgroundColor: "var(--purple)", color: "white" }
+                : { backgroundColor: "var(--washi)", color: "var(--ink-muted)", border: "1px solid var(--border)" }
+              }
             >
               すべて
             </button>
@@ -401,9 +404,10 @@ export default function FilterPanel({
                   onClick={() => toggleRelationType(rt)}
                   className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
                   style={{
-                    backgroundColor: active ? RELATION_COLORS[rt] : "rgb(68,64,60)",
-                    color: active ? "white" : "rgb(214,211,209)",
-                    opacity: !isAllRelations && !active ? 0.4 : 1,
+                    backgroundColor: active ? RELATION_COLORS[rt] : "var(--washi)",
+                    color: active ? "white" : "var(--ink-muted)",
+                    border: active ? "none" : "1px solid var(--border)",
+                    opacity: !isAllRelations && !active ? 0.45 : 1,
                   }}
                 >
                   {rt}

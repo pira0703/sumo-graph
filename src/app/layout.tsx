@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "相撲相関図",
-  description: "力士たちのつながりを可視化する",
+  title: "えにし — 力士たちのつながり",
+  description: "力士のつながりを辿り、知られざるドラマを発見する",
 };
 
 export default function RootLayout({
@@ -13,7 +13,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="bg-stone-950 text-stone-100 min-h-screen">{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-screen" style={{ backgroundColor: "var(--washi)", color: "var(--ink)" }}>
+        {children}
+      </body>
     </html>
   );
 }

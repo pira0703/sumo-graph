@@ -309,7 +309,7 @@ function HomePageContent() {
   const canEdit          = hasRole(effectiveRole, "editor");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-stone-950 relative">
+    <div className="flex h-screen overflow-hidden relative" style={{ backgroundColor: "var(--washi)" }}>
 
       {/* admin なりすましバナー */}
       {role === "admin" && (
@@ -318,13 +318,23 @@ function HomePageContent() {
 
       {/* 左サイドバー */}
       <div className={`flex-shrink-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} ${role === "admin" ? "pt-9" : ""}`}>
-        <div className="w-64 h-full flex flex-col p-3 gap-3 overflow-y-auto border-r border-stone-800">
+        <div className="w-64 h-full flex flex-col p-3 gap-3 overflow-y-auto border-r" style={{ backgroundColor: "var(--white)", borderColor: "var(--border)" }}>
 
           {/* タイトル + ログインボタン */}
           <div className="pt-2 flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h1 className="text-amber-400 font-bold text-xl">🏆 相撲相関図</h1>
-              <p className="text-stone-500 text-xs mt-0.5">
+              {/* えにし 円相ロゴ */}
+              <div className="flex items-center gap-2">
+                <svg width="36" height="36" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                  <path d="M48,12 C68,10 82,24 84,44 C86,64 74,80 55,85 C36,90 18,80 12,62 C6,44 14,24 28,16 C36,11 44,12 48,12"
+                    fill="none" stroke="#5B3A8A" strokeWidth="5" strokeLinecap="round"/>
+                  <circle cx="36" cy="52" r="5" fill="#5B3A8A" opacity=".7"/>
+                  <circle cx="60" cy="52" r="5" fill="#5B3A8A" opacity=".7"/>
+                  <line x1="41" y1="52" x2="55" y2="52" stroke="#C8982A" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+                <h1 className="font-bold text-xl" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>えにし</h1>
+              </div>
+              <p className="text-xs mt-0.5" style={{ color: "var(--ink-muted)" }}>
                 {selectedId
                   ? `フォーカス中 • ${visibleGraphData.nodes.length}人`
                   : filter.rankDivisions.length === 0
@@ -339,24 +349,28 @@ function HomePageContent() {
 
           {/* ナビゲーション */}
           <div className="flex gap-1.5">
-            <span className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-amber-600/20 border border-amber-600/40 text-amber-400 font-medium">
+            <span className="flex-1 text-center text-xs px-2 py-1.5 rounded font-medium" style={{ backgroundColor: "var(--purple-pale)", border: "1px solid var(--purple)", color: "var(--purple)" }}>
               相関図
             </span>
             {canAccessBanzuke ? (
-              <Link href="/banzuke" className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-800 border border-stone-700 text-stone-300 hover:text-amber-400 hover:border-amber-500 hover:bg-stone-700 transition-colors font-medium">
+              <Link href="/banzuke" className="flex-1 text-center text-xs px-2 py-1.5 rounded font-medium transition-colors" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--purple)"; (e.currentTarget as HTMLElement).style.color = "var(--purple)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--ink)"; }}>
                 番付
               </Link>
             ) : (
-              <span className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-900 border border-stone-800 text-stone-600 font-medium cursor-default flex items-center justify-center gap-0.5" title="有料プランで解禁">
+              <span className="flex-1 text-center text-xs px-2 py-1.5 rounded font-medium cursor-default flex items-center justify-center gap-0.5" style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--border-dark)" }} title="有料プランで解禁">
                 🔒 番付
               </span>
             )}
             {canAccessAdmin ? (
-              <Link href="/admin" className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-800 border border-stone-700 text-stone-300 hover:text-amber-400 hover:border-amber-500 hover:bg-stone-700 transition-colors font-medium">
+              <Link href="/admin" className="flex-1 text-center text-xs px-2 py-1.5 rounded font-medium transition-colors" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--purple)"; (e.currentTarget as HTMLElement).style.color = "var(--purple)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--ink)"; }}>
                 管理
               </Link>
             ) : (
-              <span className="flex-1 text-center text-xs px-2 py-1.5 rounded bg-stone-900 border border-stone-800 text-stone-600 font-medium cursor-default" title="editor 以上で利用可能">
+              <span className="flex-1 text-center text-xs px-2 py-1.5 rounded font-medium cursor-default" style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--border-dark)" }} title="editor 以上で利用可能">
                 🔒 管理
               </span>
             )}
@@ -366,10 +380,10 @@ function HomePageContent() {
           {canAccessBanzuke ? (
             <FilterPanel filter={filter} onChange={handleFilterChange} heyaOptions={heyaOptions} />
           ) : (
-            <div className="flex flex-col items-center justify-center gap-2 py-6 bg-stone-900/60 border border-stone-800 rounded-xl text-center">
+            <div className="flex flex-col items-center justify-center gap-2 py-6 rounded-xl text-center" style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)" }}>
               <span className="text-2xl">🔒</span>
-              <p className="text-stone-400 text-xs font-medium">絞り込みは有料プラン</p>
-              <p className="text-stone-600 text-xs leading-relaxed px-2">
+              <p className="text-xs font-medium" style={{ color: "var(--ink-muted)" }}>絞り込みは有料プラン</p>
+              <p className="text-xs leading-relaxed px-2" style={{ color: "var(--border-dark)" }}>
                 部屋・一門・出身地など<br />詳細フィルターを利用できます
               </p>
             </div>
@@ -382,8 +396,11 @@ function HomePageContent() {
       {/* サイドバー開閉ボタン */}
       <button
         onClick={() => setSidebarOpen((v) => !v)}
-        className="absolute z-20 bg-stone-800 hover:bg-stone-700 text-stone-300 w-5 h-12 flex items-center justify-center rounded-r-lg border border-stone-700 border-l-0 transition-all"
+        className="absolute z-20 w-5 h-12 flex items-center justify-center rounded-r-lg border-r border-t border-b transition-all"
         style={{
+          backgroundColor: "var(--white)",
+          borderColor: "var(--border)",
+          color: "var(--purple)",
           left: sidebarOpen ? "256px" : "0px",
           top: role === "admin" ? "calc(50% + 18px)" : "50%",
           transform: "translateY(-50%)",
@@ -421,7 +438,7 @@ function HomePageContent() {
         </div>
 
         {loading && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-stone-800 text-stone-300 text-xs px-3 py-1 rounded-full">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 text-xs px-3 py-1 rounded-full shadow-sm" style={{ backgroundColor: "var(--white)", color: "var(--ink-muted)", border: "1px solid var(--border)" }}>
             更新中...
           </div>
         )}
@@ -429,13 +446,14 @@ function HomePageContent() {
         {/* ─ フローティングテーマパネル（ドラッグ可能・中央寄せ初期配置） ── */}
         {themePos && (
           <div className="absolute z-20 select-none" style={{ left: themePos.x, top: themePos.y }}>
-            <div className="bg-stone-900/92 backdrop-blur-md border border-amber-500/40 rounded-2xl shadow-2xl shadow-black/70 overflow-hidden w-[360px]">
+            <div className="backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden w-[360px]" style={{ backgroundColor: "rgba(255,255,255,0.95)", border: "1px solid var(--purple)" }}>
               {/* ドラッグハンドル */}
               <div
-                className="flex items-center justify-between px-4 py-2.5 border-b border-stone-700/50 cursor-grab active:cursor-grabbing"
+                className="flex items-center justify-between px-4 py-2.5 cursor-grab active:cursor-grabbing"
+                style={{ borderBottom: "1px solid var(--border)" }}
                 onMouseDown={handleThemePanelDragStart}
               >
-                <span className="text-xs font-bold text-amber-400 tracking-widest select-none">
+                <span className="text-xs font-bold tracking-widest select-none" style={{ color: "var(--purple)" }}>
                   ✦ 今の切り口
                 </span>
                 <div className="flex gap-[3px] opacity-40">
@@ -451,17 +469,17 @@ function HomePageContent() {
                   {activeTheme.emoji}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-stone-100 text-base font-bold leading-snug">
+                  <p className="text-base font-bold leading-snug" style={{ color: "var(--ink)" }}>
                     {activeTheme.label}
                   </p>
-                  <p className="text-stone-400 text-xs mt-1 leading-relaxed line-clamp-2">
+                  <p className="text-xs mt-1 leading-relaxed line-clamp-2" style={{ color: "var(--ink-muted)" }}>
                     {activeTheme.description}
                   </p>
                 </div>
                 <button
                   onClick={handleReshuffle}
                   title="別の切り口を見る"
-                  className="shrink-0 text-stone-500 hover:text-amber-400 transition-colors text-xl leading-none"
+                  className="shrink-0 transition-colors text-xl leading-none" style={{ color: "var(--border-dark)" }}
                 >
                   🔀
                 </button>
@@ -504,8 +522,8 @@ const LEGEND_ITEMS: { type: RelationType; weight: number }[] = [
 
 function Legend() {
   return (
-    <div className="bg-stone-900 border border-stone-700 rounded-xl p-3">
-      <p className="text-stone-400 text-xs mb-2 font-medium">凡例（線の色）</p>
+    <div className="rounded-xl p-3" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
+      <p className="text-xs mb-2 font-medium" style={{ color: "var(--ink-muted)" }}>えにしの凡例</p>
       <div className="space-y-1.5">
         {LEGEND_ITEMS.map(({ type, weight }) => {
           const color = LINK_COLORS[type];
@@ -513,8 +531,8 @@ function Legend() {
           return (
             <div key={type} className="flex items-center gap-2">
               <div className={`w-7 ${lineH} rounded-full flex-shrink-0`} style={{ backgroundColor: color }} />
-              <span className="text-stone-200 text-xs">{type}</span>
-              <span className="text-stone-600 text-xs ml-auto">{"●".repeat(weight)}</span>
+              <span className="text-xs" style={{ color: "var(--ink)" }}>{type}</span>
+              <span className="text-xs ml-auto" style={{ color: "var(--border)" }}>{"●".repeat(weight)}</span>
             </div>
           );
         })}

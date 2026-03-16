@@ -253,30 +253,32 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
   });
 
   return (
-    <div className="absolute top-0 right-0 h-full w-80 bg-stone-950 border-l border-stone-700 overflow-y-auto z-10 flex flex-col">
+    <div className="absolute top-0 right-0 h-full w-80 overflow-y-auto z-10 flex flex-col" style={{ backgroundColor: "var(--white)", borderLeft: "1px solid var(--border)" }}>
       {/* ヘッダー */}
-      <div className="sticky top-0 bg-stone-950 border-b border-stone-800 z-10">
+      <div className="sticky top-0 z-10" style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-4 pt-3 pb-0">
-          <span className="text-amber-400 font-bold text-sm">力士プロフィール</span>
+          <span className="font-bold text-sm" style={{ color: "var(--purple)" }}>力士プロフィール</span>
           <div className="flex items-center gap-2">
             {rikishiId && (
               canEdit ? (
                 <Link
                   href={`/rikishi/${rikishiId}/edit`}
-                  className="text-stone-400 hover:text-amber-400 text-xs px-2 py-1 rounded border border-stone-700 hover:border-amber-400 transition-colors"
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={{ color: "var(--ink-muted)", border: "1px solid var(--border)" }}
                 >
                   ✏️ 編集
                 </Link>
               ) : (
                 <span
-                  className="text-stone-700 text-xs px-2 py-1 rounded border border-stone-800 cursor-not-allowed select-none"
+                  className="text-xs px-2 py-1 rounded cursor-not-allowed select-none"
+                  style={{ color: "var(--border)", border: "1px solid var(--border)" }}
                   title="editor 以上で利用可能"
                 >
                   🔒 編集
                 </span>
               )
             )}
-            <button onClick={onClose} className="text-stone-400 hover:text-white text-xl leading-none">×</button>
+            <button onClick={onClose} className="text-xl leading-none" style={{ color: "var(--ink-muted)" }}>×</button>
           </div>
         </div>
         {/* タブ */}
@@ -285,10 +287,11 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors
-                ${tab === key
-                  ? "border-amber-500 text-amber-400"
-                  : "border-transparent text-stone-500 hover:text-stone-300"}`}
+              className="px-3 py-1.5 text-xs font-medium border-b-2 transition-colors"
+              style={{
+                borderBottomColor: tab === key ? "var(--purple)" : "transparent",
+                color: tab === key ? "var(--purple)" : "var(--ink-muted)",
+              }}
             >
               {label}
             </button>
@@ -297,7 +300,7 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
       </div>
 
       {loading && (
-        <div className="flex-1 flex items-center justify-center text-stone-500">読み込み中...</div>
+        <div className="flex-1 flex items-center justify-center text-sm" style={{ color: "var(--ink-muted)" }}>読み込み中...</div>
       )}
 
       {rikishi && (
@@ -314,7 +317,7 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
           {tab !== "banzuke" && (<>
           {/* 顔写真 + 名前 */}
           <div className="flex items-center gap-3">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-stone-800 flex-shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0" style={{ backgroundColor: "var(--purple-pale)" }}>
               {rikishi.photo_url ? (
                 <Image
                   src={rikishi.photo_url}
@@ -327,9 +330,9 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
               )}
             </div>
             <div className="space-y-1">
-              <h2 className="text-white font-bold text-lg leading-tight">{rikishi.shikona}</h2>
+              <h2 className="font-bold text-lg leading-tight" style={{ color: "var(--ink)", fontFamily: "'Noto Serif JP', serif" }}>{rikishi.shikona}</h2>
               {rikishi.yomigana && (
-                <p className="text-stone-400 text-xs">{rikishi.yomigana}</p>
+                <p className="text-xs" style={{ color: "var(--ink-muted)" }}>{rikishi.yomigana}</p>
               )}
               <div className="flex flex-wrap gap-1">
                 {rank && (() => {
@@ -366,7 +369,7 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
                   );
                 })()}
                 {!isActive && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-stone-600 text-stone-300">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: "var(--border)", color: "var(--ink)" }}>
                     引退
                   </span>
                 )}
@@ -381,8 +384,16 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
             </div>
           </div>
 
+          {/* えにし（エピソード）— コアバリューなので最上部に配置 */}
+          {rikishi.episodes && (
+            <div className="rounded-lg p-3" style={{ backgroundColor: "var(--purple-pale)", borderLeft: "3px solid var(--purple)" }}>
+              <p className="text-xs font-bold mb-1.5" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>えにし</p>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--ink)" }}>{rikishi.episodes}</p>
+            </div>
+          )}
+
           {/* 基本情報 */}
-          <div className="bg-stone-900 rounded-lg p-3 space-y-1.5 text-xs">
+          <div className="rounded-lg p-3 space-y-1.5 text-xs" style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)" }}>
             {(rikishi.heya as { name: string } | null)?.name && (
               <Row label="部屋" value={(rikishi.heya as { name: string }).name + "部屋"} />
             )}
@@ -406,19 +417,11 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
             )}
           </div>
 
-          {/* エピソード */}
-          {rikishi.episodes && (
-            <div className="bg-stone-900 rounded-lg p-3">
-              <p className="text-stone-400 text-xs mb-1">エピソード</p>
-              <p className="text-stone-200 text-xs leading-relaxed">{rikishi.episodes}</p>
-            </div>
-          )}
-
           {/* ─── つながりトップ10 ─── */}
           {connections.length > 0 && (
             <div>
-              <p className="text-stone-400 text-xs mb-2 font-medium">
-                つながりトップ{Math.min(connections.length, 10)}
+              <p className="text-xs mb-2 font-medium" style={{ color: "var(--ink-muted)" }}>
+                えにしトップ{Math.min(connections.length, 10)}
               </p>
               <div className="space-y-1.5">
                 {connections.map((conn) => {
@@ -427,7 +430,10 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
                     <button
                       key={conn.id}
                       onClick={() => onNavigate(conn.id)}
-                      className="w-full flex items-center gap-2 bg-stone-900 hover:bg-stone-800 rounded-lg p-2 text-left transition-colors group"
+                      className="w-full flex items-center gap-2 rounded-lg p-2 text-left transition-colors group"
+                      style={{ backgroundColor: "var(--washi)" }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "var(--purple-pale)"}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = "var(--washi)"}
                     >
                       {/* 関係タイプのカラーバー */}
                       <div
@@ -435,7 +441,7 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
                         style={{ backgroundColor: lineColor }}
                       />
                       {/* 顔写真 */}
-                      <div className="w-8 h-8 rounded-full bg-stone-700 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 overflow-hidden" style={{ backgroundColor: "var(--purple-pale)" }}>
                         {conn.photo_url ? (
                           <Image
                             src={conn.photo_url}
@@ -447,7 +453,7 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
                       </div>
                       {/* 名前・関係 */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-xs font-medium truncate group-hover:text-amber-300 transition-colors">
+                        <p className="text-xs font-medium truncate transition-colors" style={{ color: "var(--ink)" }}>
                           {conn.shikona}
                         </p>
                         <div className="flex items-center gap-1 mt-0.5">
@@ -458,18 +464,18 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
                             {conn.relation_type}
                           </span>
                           {conn.heya && (
-                            <span className="text-stone-500 text-xs truncate">
+                            <span className="text-xs truncate" style={{ color: "var(--ink-muted)" }}>
                               · {conn.heya}
                             </span>
                           )}
                         </div>
                         {conn.description && (
-                          <p className="text-stone-500 text-xs truncate mt-0.5">{conn.description}</p>
+                          <p className="text-xs truncate mt-0.5" style={{ color: "var(--ink-muted)" }}>{conn.description}</p>
                         )}
                       </div>
                       {/* weight バッジ */}
                       <div className="flex-shrink-0">
-                        <span className="text-stone-600 text-xs">{"●".repeat(Math.min(conn.weight, 5))}</span>
+                        <span className="text-xs" style={{ color: "var(--border)" }}>{"●".repeat(Math.min(conn.weight, 5))}</span>
                       </div>
                     </button>
                   );
@@ -486,10 +492,11 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  // eslint-disable-next-line
   return (
     <div className="flex gap-2">
-      <span className="text-stone-500 w-16 flex-shrink-0">{label}</span>
-      <span className="text-stone-200">{value}</span>
+      <span className="w-16 flex-shrink-0" style={{ color: "var(--ink-muted)" }}>{label}</span>
+      <span style={{ color: "var(--ink)" }}>{value}</span>
     </div>
   );
 }

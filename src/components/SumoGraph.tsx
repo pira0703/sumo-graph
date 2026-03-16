@@ -578,7 +578,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
   return (
     <div
       ref={containerRef}
-      className="w-full h-full bg-stone-950 relative"
+      className="w-full h-full relative" style={{ backgroundColor: "var(--washi)" }}
       onMouseMove={(e) => {
         const rect = containerRef.current?.getBoundingClientRect();
         if (rect) setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
@@ -587,7 +587,8 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       {/* エッジホバー ツールチップ（同ペア内の最高 weight 関係を表示） */}
       {hoveredDisplayLink && (
         <div
-          className="absolute pointer-events-none z-50 bg-stone-900/95 border border-stone-600/70 rounded-lg px-3 py-2 shadow-xl backdrop-blur-sm text-xs"
+          className="absolute pointer-events-none z-50 rounded-lg px-3 py-2 shadow-xl backdrop-blur-sm text-xs"
+          style={{ backgroundColor: "rgba(255,255,255,0.97)", border: "1px solid var(--border)", color: "var(--ink)" }}
           style={{ left: mousePos.x + 14, top: mousePos.y - 42, maxWidth: 240 }}
         >
           <div className="flex items-center gap-2 font-semibold">
@@ -600,7 +601,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
             </span>
           </div>
           {(hoveredSrcName || hoveredTgtName) && (
-            <div className="text-stone-400 mt-1 truncate">
+            <div className="mt-1 truncate" style={{ color: "var(--ink-muted)" }}>
               {hoveredSrcName} ↔ {hoveredTgtName}
             </div>
           )}
@@ -610,18 +611,19 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       {/* ノードホバー リッチツールチップ */}
       {hoveredNode && !selectedNodeId && !hoveredDisplayLink && (
         <div
-          className="absolute pointer-events-none z-50 bg-stone-900/95 border border-stone-600/60 rounded-xl px-3.5 py-2.5 shadow-2xl backdrop-blur-sm"
+          className="absolute pointer-events-none z-50 rounded-xl px-3.5 py-2.5 shadow-2xl backdrop-blur-sm"
+          style={{ backgroundColor: "rgba(255,255,255,0.97)", border: "1px solid var(--border)" }}
           style={{ left: mousePos.x + 16, top: mousePos.y - 60, minWidth: 140 }}
         >
           {/* 力士名 */}
-          <div className="font-bold text-sm text-stone-100 leading-tight">{hoveredNode.name}</div>
+          <div className="font-bold text-sm leading-tight" style={{ color: "var(--ink)", fontFamily: "'Noto Serif JP', serif" }}>{hoveredNode.name}</div>
           {/* 番付 */}
           <div className="flex items-center gap-1.5 mt-1.5">
             <span
               className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ backgroundColor: RANK_COLOR_ACTIVE[hoveredNode.rank ?? ""] ?? RETIRED_COLOR }}
             />
-            <span className="text-xs text-stone-300">
+            <span className="text-xs" style={{ color: "var(--ink)" }}>
               {hoveredNode.rank_display
                 ? `${RANK_LABEL[hoveredNode.rank ?? ""] ?? hoveredNode.rank ?? ""}（${hoveredNode.rank_display}）`
                 : (RANK_LABEL[hoveredNode.rank ?? ""] ?? hoveredNode.rank ?? "")}
@@ -629,7 +631,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
           </div>
           {/* 部屋 */}
           {hoveredNode.heya && (
-            <div className="text-xs text-stone-400 mt-0.5 pl-4">{hoveredNode.heya}部屋</div>
+            <div className="text-xs mt-0.5 pl-4" style={{ color: "var(--ink-muted)" }}>{hoveredNode.heya}部屋</div>
           )}
         </div>
       )}
@@ -637,8 +639,8 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       {/* フォーカスモードバナー */}
       {selectedNodeId && neighborSet && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-          <div className="bg-stone-900/90 border border-amber-500/40 text-amber-300 text-xs px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
+          <div className="text-xs px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2" style={{ backgroundColor: "rgba(255,255,255,0.95)", border: "1px solid var(--purple)", color: "var(--purple)" }}>
+            <span className="w-2 h-2 rounded-full animate-pulse inline-block" style={{ backgroundColor: "var(--purple)" }} />
             {/* node name をグラフデータから引く */}
             <span>
               {graphData.nodes.find((n) => n.id === selectedNodeId)?.name ?? ""}
@@ -709,7 +711,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
         nodeLabel={() => ""}
 
         linkLabel={() => ""}
-        backgroundColor="#0c0a09"
+        backgroundColor="#F5F0EB"
         cooldownTicks={60}
         d3AlphaDecay={0.02}
         d3VelocityDecay={0.3}
