@@ -131,13 +131,13 @@ export default function HeyaManager({ initialRows }: Props) {
     <div className="flex flex-col gap-4">
       {/* ツールバー */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-stone-500">
-          計 <span className="text-white font-medium">{rows.length}</span> 件
+        <p className="text-sm" style={{ color: "var(--ink-muted)" }}>
+          計 <span className="font-medium" style={{ color: "var(--ink)" }}>{rows.length}</span> 件
         </p>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500
-            text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+          style={{ backgroundColor: "var(--purple)" }}
         >
           <span className="text-base leading-none">＋</span> 新規登録
         </button>
@@ -145,39 +145,37 @@ export default function HeyaManager({ initialRows }: Props) {
 
       {/* フォームパネル */}
       {showForm && (
-        <div className="bg-stone-900 border border-stone-700 rounded-xl p-5 flex flex-col gap-4">
-          <h2 className="text-sm font-bold text-amber-400">
+        <div className="rounded-xl p-5 flex flex-col gap-4" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
+          <h2 className="text-sm font-bold" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>
             {editingId ? "部屋を編集" : "新規部屋登録"}
           </h2>
 
           {error && (
-            <p className="text-red-400 text-sm bg-red-900/20 border border-red-700/40
-              rounded-lg px-3 py-2">{error}</p>
+            <p className="text-sm rounded-lg px-3 py-2" style={{ color: "#DC2626", backgroundColor: "#FEF2F2", border: "1px solid #FCA5A5" }}>{error}</p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 部屋名 */}
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <label className="text-xs text-stone-400">部屋名 <span className="text-red-400">*</span></label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>部屋名 <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="例：宮城野部屋"
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white placeholder:text-stone-600
-                  focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
 
             {/* 一門 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">一門</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>一門</label>
               <select
                 value={form.ichimon}
                 onChange={e => setForm(f => ({ ...f, ichimon: e.target.value }))}
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               >
                 <option value="">選択なし</option>
                 {ICHIMON_OPTIONS.map(i => (
@@ -188,31 +186,29 @@ export default function HeyaManager({ initialRows }: Props) {
 
             {/* 創設年 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">創設年</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>創設年</label>
               <input
                 type="number"
                 value={form.created_year}
                 onChange={e => setForm(f => ({ ...f, created_year: e.target.value }))}
                 placeholder="例：1878"
                 min={1600} max={2100}
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white placeholder:text-stone-600
-                  focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
 
             {/* 廃止年 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">廃止年 <span className="text-stone-600 text-xs">（現存部屋は空欄）</span></label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>廃止年 <span className="text-xs" style={{ color: "var(--border-dark)" }}>（現存部屋は空欄）</span></label>
               <input
                 type="number"
                 value={form.closed_year}
                 onChange={e => setForm(f => ({ ...f, closed_year: e.target.value }))}
                 placeholder="例：2010"
                 min={1600} max={2100}
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white placeholder:text-stone-600
-                  focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
           </div>
@@ -221,17 +217,16 @@ export default function HeyaManager({ initialRows }: Props) {
           <div className="flex gap-2 justify-end">
             <button
               onClick={cancel}
-              className="px-4 py-2 text-sm text-stone-400 hover:text-white
-                bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm rounded-lg transition-colors"
+              style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--ink-muted)" }}
             >
               キャンセル
             </button>
             <button
               onClick={save}
               disabled={saving}
-              className="px-5 py-2 text-sm font-bold text-white
-                bg-amber-600 hover:bg-amber-500 disabled:opacity-50
-                rounded-lg transition-colors"
+              className="px-5 py-2 text-sm font-bold text-white disabled:opacity-50 rounded-lg transition-colors"
+              style={{ backgroundColor: "var(--purple)" }}
             >
               {saving ? "保存中…" : "保存"}
             </button>
@@ -240,55 +235,55 @@ export default function HeyaManager({ initialRows }: Props) {
       )}
 
       {/* テーブル */}
-      <div className="overflow-x-auto rounded-xl border border-stone-800">
+      <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
         <table className="w-full text-sm">
-          <thead className="bg-stone-900 border-b border-stone-800">
+          <thead style={{ backgroundColor: "var(--washi)", borderBottom: "1px solid var(--border)" }}>
             <tr>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">部屋名</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">一門</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">創設</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">廃止</th>
-              <th className="text-right px-4 py-2.5 text-stone-400 font-medium">操作</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>部屋名</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>一門</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>創設</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>廃止</th>
+              <th className="text-right px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>操作</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-800/50">
+          <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-stone-500">
+                <td colSpan={5} className="px-4 py-8 text-center" style={{ color: "var(--ink-muted)" }}>
                   部屋データがありません
                 </td>
               </tr>
             )}
             {rows.map(r => (
-              <tr key={r.id} className="hover:bg-stone-900/60 transition-colors">
-                <td className="px-4 py-2.5 font-medium text-white">
+              <tr key={r.id} className="transition-colors hover:bg-enishi-pale" style={{ borderTop: "1px solid var(--border)" }}>
+                <td className="px-4 py-2.5 font-medium" style={{ color: "var(--ink)" }}>
                   {r.name}
                   {r.closed_year && (
-                    <span className="ml-2 text-xs text-stone-600 font-normal">（廃止）</span>
+                    <span className="ml-2 text-xs font-normal" style={{ color: "var(--border-dark)" }}>（廃止）</span>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400">
-                  {r.ichimon ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5" style={{ color: "var(--ink-muted)" }}>
+                  {r.ichimon ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400">
-                  {r.created_year ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5" style={{ color: "var(--ink-muted)" }}>
+                  {r.created_year ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400">
-                  {r.closed_year ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5" style={{ color: "var(--ink-muted)" }}>
+                  {r.closed_year ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
                 <td className="px-4 py-2.5">
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={() => openEdit(r)}
-                      className="text-xs px-2.5 py-1 bg-amber-600/20 border border-amber-600/40
-                        text-amber-400 hover:bg-amber-600/30 rounded transition-colors"
+                      className="text-xs px-2.5 py-1 rounded transition-colors"
+                      style={{ backgroundColor: "var(--purple-pale)", border: "1px solid var(--purple)", color: "var(--purple)" }}
                     >
                       編集
                     </button>
                     <button
                       onClick={() => confirmDelete(r.id)}
-                      className="text-xs px-2.5 py-1 bg-red-900/20 border border-red-700/40
-                        text-red-400 hover:bg-red-900/40 rounded transition-colors"
+                      className="text-xs px-2.5 py-1 rounded transition-colors"
+                      style={{ backgroundColor: "#FEF2F2", border: "1px solid #FCA5A5", color: "#DC2626" }}
                     >
                       削除
                     </button>
@@ -302,26 +297,26 @@ export default function HeyaManager({ initialRows }: Props) {
 
       {/* 削除確認ダイアログ */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-stone-900 border border-stone-700 rounded-2xl p-6 w-80 flex flex-col gap-4">
-            <h3 className="font-bold text-white">本当に削除しますか？</h3>
-            <p className="text-sm text-stone-400">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="rounded-2xl p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
+            <h3 className="font-bold" style={{ color: "var(--ink)" }}>本当に削除しますか？</h3>
+            <p className="text-sm" style={{ color: "var(--ink-muted)" }}>
               「{rows.find(r => r.id === deleteId)?.name}」を削除します。<br />
               この操作は取り消せません。
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setDeleteId(null)}
-                className="px-4 py-2 text-sm text-stone-400 hover:text-white
-                  bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm rounded-lg transition-colors"
+                style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--ink-muted)" }}
               >
                 キャンセル
               </button>
               <button
                 onClick={execDelete}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-bold text-white
-                  bg-red-700 hover:bg-red-600 disabled:opacity-50 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-bold text-white disabled:opacity-50 rounded-lg transition-colors"
+                style={{ backgroundColor: "#DC2626" }}
               >
                 {saving ? "削除中…" : "削除する"}
               </button>

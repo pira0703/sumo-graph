@@ -24,11 +24,11 @@ export default function AdminNav() {
           <Link
             key={href}
             href={href}
-            className={`px-2.5 py-1 rounded text-sm transition-colors border
-              ${active
-                ? "bg-amber-600 border-amber-500 text-white font-medium"
-                : "bg-stone-800 border-stone-700 text-stone-300 hover:text-amber-400 hover:border-amber-500"
-              }`}
+            className="px-2.5 py-1 rounded text-sm transition-colors"
+            style={active
+              ? { backgroundColor: "var(--purple)", border: "1px solid var(--purple)", color: "white", fontWeight: 500 }
+              : { backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }
+            }
           >
             {label}
           </Link>

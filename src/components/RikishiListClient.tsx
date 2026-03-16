@@ -23,11 +23,11 @@ const RANK_LABEL: Record<string, string> = {
 };
 
 const RANK_COLOR: Record<string, string> = {
-  yokozuna:   "text-amber-400",
-  ozeki:      "text-orange-400",
-  sekiwake:   "text-violet-400",
-  komusubi:   "text-blue-400",
-  maegashira: "text-green-400",
+  yokozuna:   "text-enishi",
+  ozeki:      "text-orange-600",
+  sekiwake:   "text-violet-600",
+  komusubi:   "text-blue-600",
+  maegashira: "text-green-700",
 };
 
 type SortKey = "shikona" | "active_from_basho" | "retirement_basho" | "heya" | "highest_rank";
@@ -90,8 +90,8 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
     else { setSortKey(key); setSortDir("asc"); }
   }
   function sortIcon(key: SortKey) {
-    if (sortKey !== key) return <span className="text-stone-700 ml-1">⇅</span>;
-    return <span className="text-amber-400 ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+    if (sortKey !== key) return <span className="ml-1" style={{ color: "var(--border-dark)" }}>⇅</span>;
+    return <span className="ml-1" style={{ color: "var(--purple)" }}>{sortDir === "asc" ? "↑" : "↓"}</span>;
   }
 
   const activeCount  = initialRows.filter(r => r.status === "active").length;
@@ -103,27 +103,27 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
       <div className="flex flex-wrap gap-3 items-center">
         {/* テキスト検索 */}
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-500 text-sm pointer-events-none">🔍</span>
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none" style={{ color: "var(--ink-muted)" }}>🔍</span>
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="四股名・読み仮名で検索"
-            className="bg-stone-900 border border-stone-700 rounded-lg pl-8 pr-3 py-1.5
-              text-sm text-white placeholder:text-stone-500 focus:outline-none focus:border-amber-500 w-52"
+            className="rounded-lg pl-8 pr-3 py-1.5 text-sm focus:outline-none w-52"
+            style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
           />
         </div>
 
         {/* ステータス */}
-        <div className="flex rounded-lg overflow-hidden border border-stone-700">
+        <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
           {(["all", "active", "retired"] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 text-xs font-medium transition-colors
-                ${statusFilter === s
-                  ? "bg-amber-600 text-white"
-                  : "bg-stone-900 text-stone-400 hover:bg-stone-800"}`}
+              className="px-3 py-1.5 text-xs font-medium transition-colors"
+              style={statusFilter === s
+                ? { backgroundColor: "var(--purple)", color: "var(--white)" }
+                : { backgroundColor: "var(--white)", color: "var(--ink-muted)" }}
             >
               {s === "all" ? "全員" : s === "active" ? "現役" : "引退"}
             </button>
@@ -134,8 +134,8 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
         <select
           value={heyaFilter}
           onChange={e => { setHeyaFilter(e.target.value); setIchimonFilter(""); }}
-          className="bg-stone-900 border border-stone-700 rounded-lg px-3 py-1.5
-            text-sm text-white focus:outline-none focus:border-amber-500"
+          className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+          style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
         >
           <option value="">部屋: 全部</option>
           {heyaOptions.map(h => (
@@ -147,8 +147,8 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
         <select
           value={ichimonFilter}
           onChange={e => { setIchimonFilter(e.target.value); setHeyaFilter(""); }}
-          className="bg-stone-900 border border-stone-700 rounded-lg px-3 py-1.5
-            text-sm text-white focus:outline-none focus:border-amber-500"
+          className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+          style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
         >
           <option value="">一門: 全部</option>
           {ichimonOptions.map(i => (
@@ -160,84 +160,85 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
         {(query || statusFilter !== "all" || heyaFilter || ichimonFilter) && (
           <button
             onClick={() => { setQuery(""); setStatusFilter("all"); setHeyaFilter(""); setIchimonFilter(""); }}
-            className="text-xs text-stone-500 hover:text-stone-300 underline"
+            className="text-xs underline"
+            style={{ color: "var(--ink-muted)" }}
           >
             リセット
           </button>
         )}
 
-        <span className="ml-auto text-xs text-stone-500">
+        <span className="ml-auto text-xs" style={{ color: "var(--ink-muted)" }}>
           {rows.length}人表示
-          <span className="ml-2 text-stone-600">（現役 {activeCount} / 引退 {retiredCount}）</span>
+          <span className="ml-2" style={{ color: "var(--border-dark)" }}>（現役 {activeCount} / 引退 {retiredCount}）</span>
         </span>
       </div>
 
       {/* テーブル */}
-      <div className="overflow-x-auto rounded-xl border border-stone-800">
+      <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
         <table className="w-full text-sm">
-          <thead className="bg-stone-900 border-b border-stone-800">
+          <thead style={{ backgroundColor: "var(--washi)", borderBottom: "1px solid var(--border)" }}>
             <tr>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium cursor-pointer hover:text-white"
-                  onClick={() => toggleSort("shikona")}>
+              <th className="text-left px-4 py-2.5 font-medium cursor-pointer hover:text-enishi"
+                  style={{ color: "var(--ink-muted)" }} onClick={() => toggleSort("shikona")}>
                 四股名{sortIcon("shikona")}
               </th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium cursor-pointer hover:text-white"
-                  onClick={() => toggleSort("heya")}>
+              <th className="text-left px-4 py-2.5 font-medium cursor-pointer hover:text-enishi"
+                  style={{ color: "var(--ink-muted)" }} onClick={() => toggleSort("heya")}>
                 部屋{sortIcon("heya")}
               </th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">ステータス</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium cursor-pointer hover:text-white"
-                  onClick={() => toggleSort("highest_rank")}>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>ステータス</th>
+              <th className="text-left px-4 py-2.5 font-medium cursor-pointer hover:text-enishi"
+                  style={{ color: "var(--ink-muted)" }} onClick={() => toggleSort("highest_rank")}>
                 最高位{sortIcon("highest_rank")}
               </th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium cursor-pointer hover:text-white"
-                  onClick={() => toggleSort("active_from_basho")}>
+              <th className="text-left px-4 py-2.5 font-medium cursor-pointer hover:text-enishi"
+                  style={{ color: "var(--ink-muted)" }} onClick={() => toggleSort("active_from_basho")}>
                 初土俵{sortIcon("active_from_basho")}
               </th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium cursor-pointer hover:text-white"
-                  onClick={() => toggleSort("retirement_basho")}>
+              <th className="text-left px-4 py-2.5 font-medium cursor-pointer hover:text-enishi"
+                  style={{ color: "var(--ink-muted)" }} onClick={() => toggleSort("retirement_basho")}>
                 引退場所{sortIcon("retirement_basho")}
               </th>
-              <th className="text-right px-4 py-2.5 text-stone-400 font-medium">操作</th>
+              <th className="text-right px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>操作</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-800/50">
+          <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-stone-500">
+                <td colSpan={7} className="px-4 py-8 text-center" style={{ color: "var(--ink-muted)" }}>
                   該当する力士がいません
                 </td>
               </tr>
             )}
             {rows.map(r => (
-              <tr key={r.id} className="hover:bg-stone-900/60 transition-colors">
+              <tr key={r.id} className="transition-colors hover:bg-enishi-pale" style={{ borderTop: "1px solid var(--border)" }}>
                 {/* 四股名 */}
                 <td className="px-4 py-2.5">
-                  <div className="font-medium text-white">{r.shikona}</div>
+                  <div className="font-medium" style={{ color: "var(--ink)" }}>{r.shikona}</div>
                   {r.yomigana && (
-                    <div className="text-xs text-stone-500">{r.yomigana}</div>
+                    <div className="text-xs" style={{ color: "var(--ink-muted)" }}>{r.yomigana}</div>
                   )}
                   {r.nationality && r.nationality !== "日本" && (
-                    <div className="text-xs text-stone-600">{r.nationality}</div>
+                    <div className="text-xs" style={{ color: "var(--border-dark)" }}>{r.nationality}</div>
                   )}
                 </td>
                 {/* 部屋 */}
-                <td className="px-4 py-2.5 text-stone-300">
-                  {r.heya?.name ?? <span className="text-stone-600">—</span>}
+                <td className="px-4 py-2.5" style={{ color: "var(--ink)" }}>
+                  {r.heya?.name ?? <span style={{ color: "var(--border-dark)" }}>—</span>}
                   {r.heya?.ichimon && (
-                    <div className="text-xs text-stone-600">{r.heya.ichimon}</div>
+                    <div className="text-xs" style={{ color: "var(--ink-muted)" }}>{r.heya.ichimon}</div>
                   )}
                 </td>
                 {/* ステータス */}
                 <td className="px-4 py-2.5">
                   {r.status === "active" ? (
-                    <span className="inline-flex items-center gap-1 bg-green-900/40 border border-green-700/40
-                      text-green-400 text-xs px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: "#F0FDF4", border: "1px solid #86EFAC", color: "#16A34A" }}>
                       ● 現役
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 bg-stone-800/60 border border-stone-700/40
-                      text-stone-500 text-xs px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--ink-muted)" }}>
                       ○ 引退
                     </span>
                   )}
@@ -245,35 +246,35 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
                 {/* 最高位 */}
                 <td className="px-4 py-2.5">
                   {r.highest_rank ? (
-                    <span className={`text-sm font-medium ${RANK_COLOR[r.highest_rank] ?? "text-stone-300"}`}>
+                    <span className={`text-sm font-medium ${RANK_COLOR[r.highest_rank] ?? "text-ink"}`}>
                       {RANK_LABEL[r.highest_rank] ?? r.highest_rank}
                     </span>
                   ) : (
-                    <span className="text-stone-600">—</span>
+                    <span style={{ color: "var(--border-dark)" }}>—</span>
                   )}
                 </td>
                 {/* 入幕年 */}
-                <td className="px-4 py-2.5 text-stone-400 text-sm">
-                  {r.active_from_basho ?? <span className="text-stone-600">—</span>}
+                <td className="px-4 py-2.5 text-sm" style={{ color: "var(--ink-muted)" }}>
+                  {r.active_from_basho ?? <span style={{ color: "var(--border-dark)" }}>—</span>}
                 </td>
                 {/* 引退年 */}
-                <td className="px-4 py-2.5 text-stone-400 text-sm">
-                  {r.retirement_basho ?? <span className="text-stone-600">—</span>}
+                <td className="px-4 py-2.5 text-sm" style={{ color: "var(--ink-muted)" }}>
+                  {r.retirement_basho ?? <span style={{ color: "var(--border-dark)" }}>—</span>}
                 </td>
                 {/* 操作 */}
                 <td className="px-4 py-2.5">
                   <div className="flex gap-2 justify-end">
                     <Link
                       href={`/rikishi/${r.id}/edit`}
-                      className="text-xs px-2.5 py-1 bg-amber-600/20 border border-amber-600/40
-                        text-amber-400 hover:bg-amber-600/30 rounded transition-colors"
+                      className="text-xs px-2.5 py-1 rounded transition-colors"
+                      style={{ backgroundColor: "var(--purple-pale)", border: "1px solid var(--purple)", color: "var(--purple)" }}
                     >
                       編集
                     </Link>
                     <Link
                       href={`/?rikishi=${r.id}`}
-                      className="text-xs px-2.5 py-1 bg-stone-800 border border-stone-700
-                        text-stone-400 hover:text-stone-200 hover:bg-stone-700 rounded transition-colors"
+                      className="text-xs px-2.5 py-1 rounded transition-colors"
+                      style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink-muted)" }}
                     >
                       相関図
                     </Link>

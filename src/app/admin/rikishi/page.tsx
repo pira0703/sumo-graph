@@ -26,27 +26,27 @@ export default async function AdminRikishiPage() {
   const retiredCount = rows.filter(r => r.status === "retired").length;
 
   return (
-    <div className="min-h-screen bg-stone-950 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--washi)", color: "var(--ink)" }}>
       {/* ヘッダー */}
-      <div className="border-b border-stone-800 px-6 py-4">
+      <div className="px-6 py-4" style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
           {/* タイトル＋ナビ */}
           <div className="flex items-center gap-4">
-            <h1 className="text-amber-400 font-bold text-xl">🏆 力士マスタ管理</h1>
+            <h1 className="font-bold text-xl" style={{ color: "var(--purple)" }}>🏆 力士マスタ管理</h1>
             <AdminNav />
           </div>
 
           {/* 統計 + 新規登録ボタン */}
           <div className="flex items-center gap-4">
-            <div className="text-sm text-stone-500">
-              計 <span className="text-white font-medium">{rows.length}</span> 人
-              <span className="ml-2 text-green-500">現役 {activeCount}</span>
-              <span className="ml-2 text-stone-600">/ 引退 {retiredCount}</span>
+            <div className="text-sm" style={{ color: "var(--ink-muted)" }}>
+              計 <span className="font-medium" style={{ color: "var(--ink)" }}>{rows.length}</span> 人
+              <span className="ml-2 text-green-600">現役 {activeCount}</span>
+              <span className="ml-2" style={{ color: "var(--border-dark)" }}>/ 引退 {retiredCount}</span>
             </div>
             <Link
               href="/rikishi/new"
-              className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500
-                text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+              style={{ backgroundColor: "var(--purple)" }}
             >
               <span className="text-base leading-none">＋</span> 新規登録
             </Link>

@@ -16,16 +16,16 @@ export default async function AdminBashoPage() {
   if (error) console.error("basho fetch error:", error.message);
 
   return (
-    <div className="min-h-screen bg-stone-950 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--washi)", color: "var(--ink)" }}>
       {/* ヘッダー */}
-      <div className="border-b border-stone-800 px-6 py-4">
+      <div className="px-6 py-4" style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <h1 className="text-amber-400 font-bold text-xl">🗓 場所マスタ管理</h1>
+            <h1 className="font-bold text-xl" style={{ color: "var(--purple)" }}>🗓 場所マスタ管理</h1>
             <AdminNav />
           </div>
-          <div className="text-sm text-stone-500">
-            計 <span className="text-white font-medium">{rows.length}</span> 場所
+          <div className="text-sm" style={{ color: "var(--ink-muted)" }}>
+            計 <span className="font-medium" style={{ color: "var(--ink)" }}>{rows.length}</span> 場所
           </div>
         </div>
       </div>

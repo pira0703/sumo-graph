@@ -141,17 +141,16 @@ function EditCell({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`flex-1 flex ${flexDir} items-center gap-1 px-2 py-0.5 min-h-[2rem]
-          rounded transition-colors group
-          ${label
-            ? "hover:bg-stone-700 text-stone-100"
-            : "hover:bg-stone-800 border border-dashed border-stone-700 text-stone-600"}`}
+        className={`flex-1 flex ${flexDir} items-center gap-1 px-2 py-0.5 min-h-[2rem] rounded transition-colors group`}
+        style={label
+          ? { color: "var(--ink)" }
+          : { border: "1px dashed var(--border-dark)", color: "var(--border-dark)" }}
       >
-        <span className={`text-sm flex-1 ${textAlign} leading-tight group-hover:text-amber-400 transition-colors`}>
+        <span className={`text-sm flex-1 ${textAlign} leading-tight transition-colors group-hover:text-enishi`}>
           {saving ? "…" : (label ?? "＋")}
         </span>
         {entry?.rank_display && (
-          <span className="text-xs text-stone-600 shrink-0 tabular-nums">{entry.rank_display}</span>
+          <span className="text-xs shrink-0 tabular-nums" style={{ color: "var(--ink-muted)" }}>{entry.rank_display}</span>
         )}
       </button>
     );
@@ -190,7 +189,7 @@ function EditRow({
   onSaved:    (newEntry: BanzukeEntry | null, prevRikishiId: string | null) => void;
 }) {
   return (
-    <div className="flex items-center border-b border-stone-800/50 min-h-[2.5rem] gap-1">
+    <div className="flex items-center min-h-[2.5rem] gap-1" style={{ borderBottom: "1px solid var(--border)" }}>
       <EditCell
         entry={eastEntry}
         rankClass={rankClass}
@@ -200,7 +199,7 @@ function EditRow({
         onSaved={onSaved}
       />
       <div className="w-16 shrink-0 text-center">
-        <span className="text-xs text-stone-500">{rankLabel}</span>
+        <span className="text-xs" style={{ color: "var(--ink-muted)" }}>{rankLabel}</span>
       </div>
       <EditCell
         entry={westEntry}
@@ -266,7 +265,7 @@ function MakuuchiEditView({
                 />
               );
             })}
-            <div className="border-b border-stone-700 my-1" />
+            <div className="my-1" style={{ borderBottom: "1px solid var(--border-dark)" }} />
           </div>
         );
       })}
@@ -410,23 +409,25 @@ export default function BanzukeEditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--washi)", color: "var(--ink)" }}>
       {/* ヘッダー */}
-      <header className="sticky top-0 z-20 bg-stone-950 border-b border-stone-800 px-4 py-3">
+      <header className="sticky top-0 z-20 px-4 py-3"
+        style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <Link
             href={`/banzuke/${bashoParam}`}
-            className="text-stone-400 hover:text-amber-400 text-sm transition-colors shrink-0"
+            className="text-sm transition-colors shrink-0 hover:text-enishi"
+            style={{ color: "var(--ink-muted)" }}
           >
             ← 閲覧
           </Link>
-          <h1 className="text-amber-400 font-bold text-lg flex-1 text-center">
+          <h1 className="font-bold text-lg flex-1 text-center" style={{ color: "var(--purple)" }}>
             番付編集
           </h1>
           {/* 場所セレクト */}
           <select
-            className="bg-stone-900 border border-stone-700 rounded px-2 py-1 text-sm text-white
-              focus:outline-none focus:border-amber-500 shrink-0"
+            className="rounded px-2 py-1 text-sm focus:outline-none shrink-0"
+            style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
             value={bashoParam}
             onChange={e => router.push(`/banzuke/${e.target.value}/edit`)}
           >
@@ -441,9 +442,9 @@ export default function BanzukeEditPage() {
         {/* 場所タイトル */}
         {bashoInfo && (
           <div className="text-center mb-4">
-            <p className="text-stone-400 text-xs">{bashoInfo.location}</p>
-            <h2 className="text-xl font-bold text-amber-300">{bashoInfo.name}</h2>
-            <p className="text-stone-500 text-xs mt-1">セルをクリックして力士を配置</p>
+            <p className="text-xs" style={{ color: "var(--ink-muted)" }}>{bashoInfo.location}</p>
+            <h2 className="text-xl font-bold" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>{bashoInfo.name}</h2>
+            <p className="text-xs mt-1" style={{ color: "var(--ink-muted)" }}>セルをクリックして力士を配置</p>
           </div>
         )}
 
@@ -453,13 +454,13 @@ export default function BanzukeEditPage() {
             <button
               key={div.key}
               onClick={() => setActiveDiv(div.key)}
-              className={`shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-colors
-                ${activeDiv === div.key
-                  ? "bg-amber-600 text-white"
-                  : "bg-stone-800 text-stone-300 hover:bg-stone-700"}`}
+              className="shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+              style={activeDiv === div.key
+                ? { backgroundColor: "var(--purple)", color: "var(--white)" }
+                : { backgroundColor: "var(--white)", color: "var(--ink)", border: "1px solid var(--border)" }}
             >
               {div.label}
-              <span className={`ml-1 ${activeDiv === div.key ? "text-amber-200" : "text-stone-500"}`}>
+              <span className="ml-1" style={{ color: activeDiv === div.key ? "rgba(255,255,255,0.7)" : "var(--ink-muted)" }}>
                 {countByDiv[div.key] > 0 ? countByDiv[div.key] : ""}
               </span>
             </button>
@@ -469,19 +470,19 @@ export default function BanzukeEditPage() {
         {/* ヘッダー行 */}
         <div className="flex items-center mb-1">
           <div className="flex-1 text-center">
-            <span className="text-xs font-bold text-red-400">東</span>
+            <span className="text-xs font-bold text-red-500">東</span>
           </div>
           <div className="w-16 shrink-0" />
           <div className="flex-1 text-center">
-            <span className="text-xs font-bold text-blue-400">西</span>
+            <span className="text-xs font-bold text-blue-500">西</span>
           </div>
         </div>
 
         {/* 番付本体 */}
         {loading ? (
-          <div className="text-center py-16 text-stone-500 text-sm">読み込み中...</div>
+          <div className="text-center py-16 text-sm" style={{ color: "var(--ink-muted)" }}>読み込み中...</div>
         ) : (
-          <div className="bg-stone-900 rounded-lg overflow-hidden">
+          <div className="rounded-lg overflow-hidden" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
             {activeDiv === "makuuchi" ? (
               <MakuuchiEditView
                 entries={divEntries}

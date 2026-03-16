@@ -149,13 +149,13 @@ export default function BashoManager({ initialRows }: Props) {
     <div className="flex flex-col gap-4">
       {/* ツールバー */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-stone-500">
-          計 <span className="text-white font-medium">{rows.length}</span> 件
+        <p className="text-sm" style={{ color: "var(--ink-muted)" }}>
+          計 <span className="font-medium" style={{ color: "var(--ink)" }}>{rows.length}</span> 件
         </p>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500
-            text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+          style={{ backgroundColor: "var(--purple)" }}
         >
           <span className="text-base leading-none">＋</span> 新規登録
         </button>
@@ -163,12 +163,12 @@ export default function BashoManager({ initialRows }: Props) {
 
       {/* フォームパネル */}
       {showForm && (
-        <div className="bg-stone-900 border border-stone-700 rounded-xl p-5 flex flex-col gap-4">
-          <h2 className="text-sm font-bold text-amber-400">
+        <div className="rounded-xl p-5 flex flex-col gap-4" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
+          <h2 className="text-sm font-bold" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>
             {editingId ? "場所を編集" : "新規場所登録"}
           </h2>
           {error && (
-            <p className="text-red-400 text-sm bg-red-900/20 border border-red-700/40 rounded-lg px-3 py-2">
+            <p className="text-sm rounded-lg px-3 py-2" style={{ color: "#DC2626", backgroundColor: "#FEF2F2", border: "1px solid #FCA5A5" }}>
               {error}
             </p>
           )}
@@ -176,9 +176,9 @@ export default function BashoManager({ initialRows }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* 場所ID */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">
-                場所ID <span className="text-red-400">*</span>
-                <span className="text-stone-600 ml-1">（YYYY-MM）</span>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>
+                場所ID <span className="text-red-500">*</span>
+                <span className="ml-1" style={{ color: "var(--border-dark)" }}>（YYYY-MM）</span>
               </label>
               <input
                 type="text"
@@ -186,50 +186,47 @@ export default function BashoManager({ initialRows }: Props) {
                 onChange={e => editingId ? undefined : handleIdChange(e.target.value)}
                 readOnly={!!editingId}
                 placeholder="例：2024-01"
-                className={`border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500
-                  ${editingId
-                    ? "bg-stone-800/50 border-stone-700/50 text-stone-500 cursor-not-allowed"
-                    : "bg-stone-800 border-stone-700 text-white placeholder:text-stone-600"
-                  }`}
+                className="border rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={editingId
+                  ? { backgroundColor: "var(--washi)", borderColor: "var(--border)", color: "var(--border-dark)", cursor: "not-allowed" }
+                  : { backgroundColor: "var(--white)", borderColor: "var(--border)", color: "var(--ink)" }}
               />
             </div>
 
             {/* 場所名 */}
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <label className="text-xs text-stone-400">場所名</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>場所名</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="例：2024年初場所"
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white placeholder:text-stone-600
-                  focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
 
             {/* 略称 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">略称</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>略称</label>
               <input
                 type="text"
                 value={form.short_name}
                 onChange={e => setForm(f => ({ ...f, short_name: e.target.value }))}
                 placeholder="例：24初"
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white placeholder:text-stone-600
-                  focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
 
             {/* 開催地 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">開催地</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>開催地</label>
               <select
                 value={form.location}
                 onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               >
                 <option value="">選択なし</option>
                 {LOCATION_OPTIONS.map(l => (
@@ -240,25 +237,25 @@ export default function BashoManager({ initialRows }: Props) {
 
             {/* 開始日 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">開始日</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>開始日</label>
               <input
                 type="date"
                 value={form.start_date}
                 onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
 
             {/* 終了日 */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-stone-400">終了日</label>
+              <label className="text-xs" style={{ color: "var(--ink-muted)" }}>終了日</label>
               <input
                 type="date"
                 value={form.end_date}
                 onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
-                className="bg-stone-800 border border-stone-700 rounded-lg px-3 py-2
-                  text-sm text-white focus:outline-none focus:border-amber-500"
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
               />
             </div>
           </div>
@@ -266,16 +263,16 @@ export default function BashoManager({ initialRows }: Props) {
           <div className="flex gap-2 justify-end">
             <button
               onClick={cancel}
-              className="px-4 py-2 text-sm text-stone-400 hover:text-white
-                bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm rounded-lg transition-colors"
+              style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--ink-muted)" }}
             >
               キャンセル
             </button>
             <button
               onClick={save}
               disabled={saving}
-              className="px-5 py-2 text-sm font-bold text-white
-                bg-amber-600 hover:bg-amber-500 disabled:opacity-50 rounded-lg transition-colors"
+              className="px-5 py-2 text-sm font-bold text-white disabled:opacity-50 rounded-lg transition-colors"
+              style={{ backgroundColor: "var(--purple)" }}
             >
               {saving ? "保存中…" : "保存"}
             </button>
@@ -284,58 +281,58 @@ export default function BashoManager({ initialRows }: Props) {
       )}
 
       {/* テーブル */}
-      <div className="overflow-x-auto rounded-xl border border-stone-800">
+      <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
         <table className="w-full text-sm">
-          <thead className="bg-stone-900 border-b border-stone-800">
+          <thead style={{ backgroundColor: "var(--washi)", borderBottom: "1px solid var(--border)" }}>
             <tr>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">ID</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">場所名</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">略称</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">開催地</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">開始日</th>
-              <th className="text-left px-4 py-2.5 text-stone-400 font-medium">終了日</th>
-              <th className="text-right px-4 py-2.5 text-stone-400 font-medium">操作</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>ID</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>場所名</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>略称</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>開催地</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>開始日</th>
+              <th className="text-left px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>終了日</th>
+              <th className="text-right px-4 py-2.5 font-medium" style={{ color: "var(--ink-muted)" }}>操作</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-800/50">
+          <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-stone-500">
+                <td colSpan={7} className="px-4 py-8 text-center" style={{ color: "var(--ink-muted)" }}>
                   場所データがありません
                 </td>
               </tr>
             )}
             {rows.map(r => (
-              <tr key={r.id} className="hover:bg-stone-900/60 transition-colors">
-                <td className="px-4 py-2.5 font-mono text-stone-400 text-xs">{r.id}</td>
-                <td className="px-4 py-2.5 font-medium text-white">
-                  {r.name ?? <span className="text-stone-600">—</span>}
+              <tr key={r.id} className="transition-colors hover:bg-enishi-pale" style={{ borderTop: "1px solid var(--border)" }}>
+                <td className="px-4 py-2.5 font-mono text-xs" style={{ color: "var(--ink-muted)" }}>{r.id}</td>
+                <td className="px-4 py-2.5 font-medium" style={{ color: "var(--ink)" }}>
+                  {r.name ?? <span style={{ color: "var(--border-dark)" }}>—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400">
-                  {r.short_name ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5" style={{ color: "var(--ink-muted)" }}>
+                  {r.short_name ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400">
-                  {r.location ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5" style={{ color: "var(--ink-muted)" }}>
+                  {r.location ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400 text-xs">
-                  {r.start_date ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5 text-xs" style={{ color: "var(--ink-muted)" }}>
+                  {r.start_date ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-stone-400 text-xs">
-                  {r.end_date ?? <span className="text-stone-700">—</span>}
+                <td className="px-4 py-2.5 text-xs" style={{ color: "var(--ink-muted)" }}>
+                  {r.end_date ?? <span style={{ color: "var(--border)" }}>—</span>}
                 </td>
                 <td className="px-4 py-2.5">
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={() => openEdit(r)}
-                      className="text-xs px-2.5 py-1 bg-amber-600/20 border border-amber-600/40
-                        text-amber-400 hover:bg-amber-600/30 rounded transition-colors"
+                      className="text-xs px-2.5 py-1 rounded transition-colors"
+                      style={{ backgroundColor: "var(--purple-pale)", border: "1px solid var(--purple)", color: "var(--purple)" }}
                     >
                       編集
                     </button>
                     <button
                       onClick={() => setDeleteId(r.id)}
-                      className="text-xs px-2.5 py-1 bg-red-900/20 border border-red-700/40
-                        text-red-400 hover:bg-red-900/40 rounded transition-colors"
+                      className="text-xs px-2.5 py-1 rounded transition-colors"
+                      style={{ backgroundColor: "#FEF2F2", border: "1px solid #FCA5A5", color: "#DC2626" }}
                     >
                       削除
                     </button>
@@ -349,26 +346,26 @@ export default function BashoManager({ initialRows }: Props) {
 
       {/* 削除確認 */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-stone-900 border border-stone-700 rounded-2xl p-6 w-80 flex flex-col gap-4">
-            <h3 className="font-bold text-white">本当に削除しますか？</h3>
-            <p className="text-sm text-stone-400">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="rounded-2xl p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
+            <h3 className="font-bold" style={{ color: "var(--ink)" }}>本当に削除しますか？</h3>
+            <p className="text-sm" style={{ color: "var(--ink-muted)" }}>
               「{rows.find(r => r.id === deleteId)?.name ?? deleteId}」を削除します。<br />
               この操作は取り消せません。
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setDeleteId(null)}
-                className="px-4 py-2 text-sm text-stone-400 hover:text-white
-                  bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm rounded-lg transition-colors"
+                style={{ backgroundColor: "var(--washi)", border: "1px solid var(--border)", color: "var(--ink-muted)" }}
               >
                 キャンセル
               </button>
               <button
                 onClick={execDelete}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-bold text-white
-                  bg-red-700 hover:bg-red-600 disabled:opacity-50 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-bold text-white disabled:opacity-50 rounded-lg transition-colors"
+                style={{ backgroundColor: "#DC2626" }}
               >
                 {saving ? "削除中…" : "削除する"}
               </button>

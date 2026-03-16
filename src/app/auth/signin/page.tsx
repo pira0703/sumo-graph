@@ -20,16 +20,25 @@ function SignInContent() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-950 flex items-center justify-center px-4">
-      <div className="bg-stone-900 border border-stone-700 rounded-xl p-8 w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "var(--washi)" }}>
+      <div className="rounded-xl p-8 w-full max-w-sm shadow-sm" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">🏆</div>
-          <h1 className="text-xl font-bold text-amber-400">相撲相関図</h1>
-          <p className="text-stone-400 text-sm mt-2">管理画面へのアクセスにはログインが必要です</p>
+          {/* えにし 円相ロゴ */}
+          <div className="flex justify-center mb-3">
+            <svg width="52" height="52" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M48,12 C68,10 82,24 84,44 C86,64 74,80 55,85 C36,90 18,80 12,62 C6,44 14,24 28,16 C36,11 44,12 48,12"
+                fill="none" stroke="#5B3A8A" strokeWidth="5" strokeLinecap="round"/>
+              <circle cx="36" cy="52" r="5" fill="#5B3A8A" opacity=".7"/>
+              <circle cx="60" cy="52" r="5" fill="#5B3A8A" opacity=".7"/>
+              <line x1="41" y1="52" x2="55" y2="52" stroke="#C8982A" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>えにし</h1>
+          <p className="text-sm mt-2" style={{ color: "var(--ink-muted)" }}>ログインして続ける</p>
         </div>
 
         {error && (
-          <div className="bg-red-900/30 border border-red-700 text-red-300 text-sm rounded-lg p-3 mb-4">
+          <div className="text-sm rounded-lg p-3 mb-4" style={{ backgroundColor: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.3)", color: "#dc2626" }}>
             認証エラーが発生しました。もう一度お試しください。
           </div>
         )}

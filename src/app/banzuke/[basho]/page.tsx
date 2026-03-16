@@ -56,11 +56,11 @@ const RANK_JA: Record<string, string> = {
 
 // 幕内の格 → 表示スタイル
 const MAKUUCHI_STYLE: Record<string, { size: string; color: string }> = {
-  yokozuna:   { size: "text-lg font-bold",  color: "text-amber-300" },
-  ozeki:      { size: "text-base font-bold",color: "text-amber-200" },
-  sekiwake:   { size: "text-sm font-semibold", color: "text-amber-100" },
-  komusubi:   { size: "text-sm font-semibold", color: "text-stone-100" },
-  maegashira: { size: "text-sm",            color: "text-stone-200" },
+  yokozuna:   { size: "text-lg font-bold",     color: "text-enishi" },
+  ozeki:      { size: "text-base font-bold",   color: "text-enishi" },
+  sekiwake:   { size: "text-sm font-semibold", color: "text-enishi-light" },
+  komusubi:   { size: "text-sm font-semibold", color: "text-ink" },
+  maegashira: { size: "text-sm",               color: "text-ink" },
 };
 
 // ─── ユーティリティ ───────────────────────────────────────────────────────────
@@ -93,14 +93,14 @@ function RikishiCell({
     <Link
       href={`/?rikishi=${entry.rikishi_id}`}
       className={`flex-1 flex ${flexDir} items-center gap-1 px-2 py-0.5
-        hover:bg-stone-800 rounded transition-colors group`}
+        hover:bg-enishi-pale rounded transition-colors group`}
     >
       <span className={`${style.size} ${style.color} ${textAlign} flex-1
-        group-hover:text-amber-400 transition-colors leading-tight`}>
+        group-hover:text-enishi transition-colors leading-tight`}>
         {entry.rikishi?.shikona ?? "?"}
       </span>
       {entry.rank_display && (
-        <span className="text-xs text-stone-500 shrink-0 tabular-nums">
+        <span className="text-xs shrink-0 tabular-nums" style={{ color: "var(--ink-muted)" }}>
           {entry.rank_display}
         </span>
       )}
@@ -122,10 +122,10 @@ function BanzukeRow_({
   style:     { size: string; color: string };
 }) {
   return (
-    <div className="flex items-center border-b border-stone-800/50 min-h-[2rem]">
+    <div className="flex items-center min-h-[2rem]" style={{ borderBottom: "1px solid var(--border)" }}>
       <RikishiCell entry={eastEntry} side="east" style={style} />
       <div className="w-16 shrink-0 text-center">
-        <span className="text-xs text-stone-500">{rankLabel}</span>
+        <span className="text-xs" style={{ color: "var(--ink-muted)" }}>{rankLabel}</span>
       </div>
       <RikishiCell entry={westEntry} side="west" style={style} />
     </div>
@@ -168,7 +168,7 @@ function MakuuchiView({ entries }: { entries: BanzukeRow[] }) {
               />
             );
           })}
-          <div className="border-b border-stone-700 my-1" />
+          <div className="my-1" style={{ borderBottom: "1px solid var(--border-dark)" }} />
         </div>
       ))}
 
@@ -193,7 +193,7 @@ function MakuuchiView({ entries }: { entries: BanzukeRow[] }) {
 
 function SimpleView({ entries, rankClass }: { entries: BanzukeRow[]; rankClass: string }) {
   const pairs = toPairs(entries);
-  const style = { size: "text-sm", color: "text-stone-200" };
+  const style = { size: "text-sm", color: "text-ink" };
 
   return (
     <div>
@@ -210,7 +210,7 @@ function SimpleView({ entries, rankClass }: { entries: BanzukeRow[]; rankClass: 
         );
       })}
       {pairs.length === 0 && (
-        <p className="text-stone-500 text-sm text-center py-8">データなし</p>
+        <p className="text-sm text-center py-8" style={{ color: "var(--ink-muted)" }}>データなし</p>
       )}
     </div>
   );
@@ -276,33 +276,37 @@ export default function BanzukePage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--washi)", color: "var(--ink)" }}>
       {/* ヘッダー */}
-      <header className="sticky top-0 z-20 bg-stone-950 border-b border-stone-800 px-4 py-3">
+      <header className="sticky top-0 z-20 px-4 py-3"
+        style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/" className="text-stone-400 hover:text-amber-400 text-sm transition-colors">
+            <Link href="/" className="text-sm transition-colors hover:text-enishi"
+              style={{ color: "var(--ink-muted)" }}>
               相関図
             </Link>
-            <span className="text-stone-700">|</span>
-            <Link href="/admin/rikishi" className="text-stone-400 hover:text-amber-400 text-sm transition-colors">
+            <span style={{ color: "var(--border-dark)" }}>|</span>
+            <Link href="/admin/rikishi" className="text-sm transition-colors hover:text-enishi"
+              style={{ color: "var(--ink-muted)" }}>
               力士
             </Link>
           </div>
-          <h1 className="text-amber-400 font-bold text-lg flex-1 text-center">
+          <h1 className="font-bold text-lg flex-1 text-center" style={{ color: "var(--purple)" }}>
             番付
           </h1>
           {canEdit ? (
             <Link
               href={`/banzuke/${bashoParam}/edit`}
-              className="text-xs px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-amber-400
-                rounded transition-colors shrink-0"
+              className="text-xs px-2 py-1 rounded transition-colors shrink-0 hover:text-enishi"
+              style={{ backgroundColor: "var(--purple-pale)", color: "var(--purple)", border: "1px solid var(--border)" }}
             >
               編集
             </Link>
           ) : (
             <span
-              className="text-xs px-2 py-1 bg-stone-900 text-stone-700 rounded cursor-not-allowed shrink-0"
+              className="text-xs px-2 py-1 rounded cursor-not-allowed shrink-0"
+              style={{ backgroundColor: "var(--washi)", color: "var(--border-dark)", border: "1px solid var(--border)" }}
               title="editor 以上で利用可能"
             >
               🔒 編集
@@ -310,8 +314,8 @@ export default function BanzukePage() {
           )}
           {/* 場所セレクト */}
           <select
-            className="bg-stone-900 border border-stone-700 rounded px-2 py-1 text-sm text-white
-              focus:outline-none focus:border-amber-500"
+            className="rounded px-2 py-1 text-sm focus:outline-none"
+            style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
             value={bashoParam}
             onChange={e => handleBashoChange(e.target.value)}
           >
@@ -326,8 +330,8 @@ export default function BanzukePage() {
         {/* 場所タイトル */}
         {bashoInfo && (
           <div className="text-center mb-4">
-            <p className="text-stone-400 text-xs">{bashoInfo.location}</p>
-            <h2 className="text-xl font-bold text-amber-300">{bashoInfo.name}</h2>
+            <p className="text-xs" style={{ color: "var(--ink-muted)" }}>{bashoInfo.location}</p>
+            <h2 className="text-xl font-bold" style={{ color: "var(--purple)", fontFamily: "'Noto Serif JP', serif" }}>{bashoInfo.name}</h2>
           </div>
         )}
 
@@ -337,13 +341,13 @@ export default function BanzukePage() {
             <button
               key={div.key}
               onClick={() => setActiveDiv(div.key)}
-              className={`shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-colors
-                ${activeDiv === div.key
-                  ? "bg-amber-600 text-white"
-                  : "bg-stone-800 text-stone-300 hover:bg-stone-700"}`}
+              className="shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+              style={activeDiv === div.key
+                ? { backgroundColor: "var(--purple)", color: "var(--white)" }
+                : { backgroundColor: "var(--white)", color: "var(--ink)", border: "1px solid var(--border)" }}
             >
               {div.label}
-              <span className={`ml-1 ${activeDiv === div.key ? "text-amber-200" : "text-stone-500"}`}>
+              <span className="ml-1" style={{ color: activeDiv === div.key ? "rgba(255,255,255,0.7)" : "var(--ink-muted)" }}>
                 {countByDiv[div.key] > 0 ? countByDiv[div.key] : ""}
               </span>
             </button>
@@ -363,9 +367,9 @@ export default function BanzukePage() {
 
         {/* 番付本体 */}
         {loading ? (
-          <div className="text-center py-16 text-stone-500 text-sm">読み込み中...</div>
+          <div className="text-center py-16 text-sm" style={{ color: "var(--ink-muted)" }}>読み込み中...</div>
         ) : (
-          <div className="bg-stone-900 rounded-lg overflow-hidden">
+          <div className="rounded-lg overflow-hidden" style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)" }}>
             {activeDiv === "makuuchi" ? (
               <MakuuchiView entries={divEntries} />
             ) : (
@@ -380,12 +384,12 @@ export default function BanzukePage() {
         {/* データなし */}
         {!loading && entries.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-stone-400 text-sm">この場所の番付データはまだ登録されていません</p>
+            <p className="text-sm" style={{ color: "var(--ink-muted)" }}>この場所の番付データはまだ登録されていません</p>
               {canEdit && (
               <Link
                 href={`/banzuke/${bashoParam}/edit`}
-                className="inline-block mt-3 text-xs px-3 py-1.5 bg-amber-900/50 hover:bg-amber-800/60
-                  text-amber-400 rounded transition-colors"
+                className="inline-block mt-3 text-xs px-3 py-1.5 rounded transition-colors"
+                style={{ backgroundColor: "var(--purple-pale)", color: "var(--purple)" }}
               >
                 番付を編集する →
               </Link>
