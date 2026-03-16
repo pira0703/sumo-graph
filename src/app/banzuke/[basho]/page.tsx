@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Basho } from "@/types";
+import { useAuthRole, hasRole } from "@/hooks/useAuthRole";
 
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
@@ -228,6 +229,9 @@ export default function BanzukePage() {
   const initialDiv: DivKey =
     divParam && validDivKeys.includes(divParam) ? divParam : "makuuchi";
 
+  const { role } = useAuthRole();
+  const canEdit = hasRole(role, "editor");
+
   const [bashoList, setBashoList]   = useState<Basho[]>([]);
   const [entries,   setEntries]     = useState<BanzukeRow[]>([]);
   const [bashoInfo, setBashoInfo]   = useState<Basho | null>(null);
@@ -288,13 +292,22 @@ export default function BanzukePage() {
           <h1 className="text-amber-400 font-bold text-lg flex-1 text-center">
             番付
           </h1>
-          <Link
-            href={`/banzuke/${bashoParam}/edit`}
-            className="text-xs px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-amber-400
-              rounded transition-colors shrink-0"
-          >
-            編集
-          </Link>
+          {canEdit ? (
+            <Link
+              href={`/banzuke/${bashoParam}/edit`}
+              className="text-xs px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-amber-400
+                rounded transition-colors shrink-0"
+            >
+              編集
+            </Link>
+          ) : (
+            <span
+              className="text-xs px-2 py-1 bg-stone-900 text-stone-700 rounded cursor-not-allowed shrink-0"
+              title="editor 以上で利用可能"
+            >
+              🔒 編集
+            </span>
+          )}
           {/* 場所セレクト */}
           <select
             className="bg-stone-900 border border-stone-700 rounded px-2 py-1 text-sm text-white
@@ -368,13 +381,15 @@ export default function BanzukePage() {
         {!loading && entries.length === 0 && (
           <div className="text-center py-16">
             <p className="text-stone-400 text-sm">この場所の番付データはまだ登録されていません</p>
+              {canEdit && (
               <Link
-              href={`/banzuke/${bashoParam}/edit`}
-              className="inline-block mt-3 text-xs px-3 py-1.5 bg-amber-900/50 hover:bg-amber-800/60
-                text-amber-400 rounded transition-colors"
-            >
-              番付を編集する →
-            </Link>
+                href={`/banzuke/${bashoParam}/edit`}
+                className="inline-block mt-3 text-xs px-3 py-1.5 bg-amber-900/50 hover:bg-amber-800/60
+                  text-amber-400 rounded transition-colors"
+              >
+                番付を編集する →
+              </Link>
+            )}
           </div>
         )}
       </div>
