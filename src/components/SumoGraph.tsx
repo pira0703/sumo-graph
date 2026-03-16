@@ -37,7 +37,7 @@ const LINK_OPACITY: Record<number, number> = {
 
 // 関係値 → フォーカス時の配置半径（グラフ座標）: 強い関係ほど近く
 const FOCUS_RADIUS: Record<number, number> = {
-  5:  70,
+  5: 70,
   4: 110,
   3: 160,
   2: 220,
@@ -46,7 +46,7 @@ const FOCUS_RADIUS: Record<number, number> = {
 
 // リングごとに開始角度をずらす（同じ角度のノードが一直線に並ぶのを防ぐ）
 const RING_PHASE: Record<number, number> = {
-  5:                  0,            //   0°
+  5: 0,            //   0°
   4: Math.PI / 5,                   //  36°
   3: (2 * Math.PI) / 5,             //  72°
   2: (3 * Math.PI) / 5,             // 108°
@@ -56,53 +56,53 @@ const RING_PHASE: Record<number, number> = {
 // ─── 番付 → ノードサイズ ────────────────────────────────────────────────────
 // 横綱〜序の口まで段階的に表現
 const RANK_SIZE: Record<string, number> = {
-  yokozuna:   18,
-  ozeki:      14,
-  sekiwake:   11,
-  komusubi:    9,
-  maegashira:  7,
-  juryo:       5,
-  makushita:   3.5,
-  sandanme:    2.5,
-  jonidan:     2,
-  jonokuchi:   2,
+  yokozuna: 18,
+  ozeki: 14,
+  sekiwake: 11,
+  komusubi: 9,
+  maegashira: 7,
+  juryo: 5,
+  makushita: 3.5,
+  sandanme: 2.5,
+  jonidan: 2,
+  jonokuchi: 2,
 };
 
 const RANK_COLOR_ACTIVE: Record<string, string> = {
-  yokozuna:   "#fbbf24",  // gold
-  ozeki:      "#f97316",  // orange
-  sekiwake:   "#a78bfa",  // purple
-  komusubi:   "#60a5fa",  // blue
+  yokozuna: "#fbbf24",  // gold
+  ozeki: "#f97316",  // orange
+  sekiwake: "#a78bfa",  // purple
+  komusubi: "#60a5fa",  // blue
   maegashira: "#4ade80",  // green
-  juryo:      "#34d399",  // teal
-  makushita:  "#6ee7b7",  // light teal
-  sandanme:   "#9ca3af",  // gray
-  jonidan:    "#6b7280",  // dark gray
-  jonokuchi:  "#4b5563",  // darker gray
+  juryo: "#34d399",  // teal
+  makushita: "#6ee7b7",  // light teal
+  sandanme: "#9ca3af",  // gray
+  jonidan: "#6b7280",  // dark gray
+  jonokuchi: "#4b5563",  // darker gray
 };
 
 // リングを表示する番付（上位4役のみ）
 const RANK_HAS_RING = new Set(["yokozuna", "ozeki", "sekiwake", "komusubi"]);
 
 const RANK_RING: Record<string, string> = {
-  yokozuna:   "#fef08a",
-  ozeki:      "#fed7aa",
-  sekiwake:   "#ddd6fe",
-  komusubi:   "#bfdbfe",
+  yokozuna: "#fef08a",
+  ozeki: "#fed7aa",
+  sekiwake: "#ddd6fe",
+  komusubi: "#bfdbfe",
 };
 
 // 番付クラス → 日本語表示
 const RANK_LABEL: Record<string, string> = {
-  yokozuna:   "横綱",
-  ozeki:      "大関",
-  sekiwake:   "関脇",
-  komusubi:   "小結",
+  yokozuna: "横綱",
+  ozeki: "大関",
+  sekiwake: "関脇",
+  komusubi: "小結",
   maegashira: "前頭",
-  juryo:      "十両",
-  makushita:  "幕下",
-  sandanme:   "三段目",
-  jonidan:    "序二段",
-  jonokuchi:  "序の口",
+  juryo: "十両",
+  makushita: "幕下",
+  sandanme: "三段目",
+  jonidan: "序二段",
+  jonokuchi: "序の口",
 };
 
 const RETIRED_COLOR = "#52525b";
@@ -130,19 +130,19 @@ interface Props {
 
 export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, selectedNodeId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fgRef        = useRef<any>(null); // react-force-graph-2d instance
+  const fgRef = useRef<any>(null); // react-force-graph-2d instance
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   // ノードホバー（ハイライト・ツールチップ用）
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   // エッジホバー
   // hoveredPair: hover中のノードペア（色判定に使用）
-  const [hoveredPair, setHoveredPair]             = useState<{ srcId: string; tgtId: string } | null>(null);
+  const [hoveredPair, setHoveredPair] = useState<{ srcId: string; tgtId: string } | null>(null);
   // hoveredDisplayLink: tooltip 表示用（同ペア内の最高 weight エッジ）
   const [hoveredDisplayLink, setHoveredDisplayLink] = useState<GraphLink | null>(null);
-  const [mousePos, setMousePos]                   = useState({ x: 0, y: 0 });
-  const imageCache        = useRef<Map<string, HTMLImageElement>>(new Map());
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
   // フォーカスレイアウト用: フォーカス前のノード位置を保存しておく
-  const savedPositions    = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const savedPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
   const prevSelectedIdRef = useRef<string | null>(null);
   // fgRef が未準備の場合にフォーカス効果をリトライするためのカウンター
   const [graphReadyRetry, setGraphReadyRetry] = useState(0);
@@ -265,7 +265,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
     for (const link of links) {
       const src = getLinkEndId(link.source);
       const tgt = getLinkEndId(link.target);
-      const w   = link.weight ?? 1;
+      const w = link.weight ?? 1;
       if (src === selectedNodeId) neighborWeights.set(tgt, Math.max(neighborWeights.get(tgt) ?? 0, w));
       if (tgt === selectedNodeId) neighborWeights.set(src, Math.max(neighborWeights.get(src) ?? 0, w));
     }
@@ -278,15 +278,15 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
 
     let maxRadius = 0;
     for (const [wStr, nodeIds] of Object.entries(byWeight)) {
-      const w      = Number(wStr);
+      const w = Number(wStr);
       const radius = FOCUS_RADIUS[w] ?? 300;
-      const phase  = RING_PHASE[w] ?? 0; // リングごとに開始角度をずらす
+      const phase = RING_PHASE[w] ?? 0; // リングごとに開始角度をずらす
       if (nodeIds.length > 0) maxRadius = Math.max(maxRadius, radius);
-      const count  = nodeIds.length;
+      const count = nodeIds.length;
       nodeIds.forEach((nodeId, i) => {
         // phase を加算することで異なるリングのノードが同一直線上に並ばない
         const angle = phase + (2 * Math.PI * i) / count - Math.PI / 2;
-        const node  = nodes.find((n) => n.id === nodeId);
+        const node = nodes.find((n) => n.id === nodeId);
         if (node) {
           node.fx = cx + radius * Math.cos(angle);
           node.fy = cy + radius * Math.sin(angle);
@@ -296,7 +296,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
 
     // 非隣接ノードは画面外（遠方）に散らす
     const offScreenDist = Math.max(dimensions.width, dimensions.height) * 1.2;
-    const nonNeighbors  = nodes.filter(
+    const nonNeighbors = nodes.filter(
       (n) => n.id !== selectedNodeId && !neighborWeights.has(n.id)
     );
     nonNeighbors.forEach((node, i) => {
@@ -320,29 +320,29 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
 
     prevSelectedIdRef.current = selectedNodeId;
     return () => clearTimeout(zoomTimer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodeId, graphData.nodes, graphData.links, dimensions, graphReadyRetry]);
 
   // ─── ノード描画 ────────────────────────────────────────────────────────────
   const paintNode = useCallback(
     (node: object, ctx: CanvasRenderingContext2D, globalScale: number) => {
-      const n          = node as GraphNode;
-      const rank       = n.rank ?? "maegashira";
-      const isActive   = n.status === "active";
+      const n = node as GraphNode;
+      const rank = n.rank ?? "maegashira";
+      const isActive = n.status === "active";
       const isSelected = n.id === selectedNodeId;
-      const isHovered  = n.id === hoveredNodeId && !selectedNodeId;
-      const isFocused  = !neighborSet || isSelected || neighborSet.has(n.id);
-      const x          = n.x ?? 0;
-      const y          = n.y ?? 0;
+      const isHovered = n.id === hoveredNodeId && !selectedNodeId;
+      const isFocused = !neighborSet || isSelected || neighborSet.has(n.id);
+      const x = n.x ?? 0;
+      const y = n.y ?? 0;
 
       // フォーカス外ノードはほぼ透明で描画
       if (!isFocused) {
         ctx.globalAlpha = 0.07;
       }
 
-      const baseR     = RANK_SIZE[rank] ?? 6;
+      const baseR = RANK_SIZE[rank] ?? 6;
       // 選択ノードは少し大きく、ホバーノードも少し大きく
-      const r         = baseR * (isActive ? 1 : 0.85) * (isSelected ? 1.25 : isHovered ? 1.15 : 1.0);
+      const r = baseR * (isActive ? 1 : 0.85) * (isSelected ? 1.25 : isHovered ? 1.15 : 1.0);
       const fillColor = isActive
         ? (RANK_COLOR_ACTIVE[rank] ?? RETIRED_COLOR)
         : RETIRED_COLOR;
@@ -376,12 +376,12 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       // 現役力士の番付リング（上位4役のみ）
       if (isActive && RANK_HAS_RING.has(rank)) {
         const ringColor = RANK_RING[rank] ?? "transparent";
-        const ringR     = rank === "yokozuna" ? r + 4 : r + 2.5;
-        const ringW     = rank === "yokozuna" ? 2.0  : 1.2;
+        const ringR = rank === "yokozuna" ? r + 4 : r + 2.5;
+        const ringW = rank === "yokozuna" ? 2.0 : 1.2;
         ctx.beginPath();
         ctx.arc(x, y, ringR, 0, 2 * Math.PI);
         ctx.strokeStyle = ringColor;
-        ctx.lineWidth   = ringW;
+        ctx.lineWidth = ringW;
         ctx.stroke();
       }
 
@@ -390,7 +390,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
         ctx.beginPath();
         ctx.arc(x, y, r + 7, 0, 2 * Math.PI);
         ctx.strokeStyle = "rgba(251,191,36,0.28)";
-        ctx.lineWidth   = 3;
+        ctx.lineWidth = 3;
         ctx.stroke();
       }
 
@@ -444,12 +444,12 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
 
       if (showLabel) {
         const fontSize = Math.max(isSelected ? 13 / globalScale : 10 / globalScale, 3);
-        ctx.font      = isSelected
+        ctx.font = isSelected
           ? `bold ${fontSize}px sans-serif`
           : `${fontSize}px sans-serif`;
-        ctx.textAlign    = "center";
+        ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillStyle    = isSelected
+        ctx.fillStyle = isSelected
           ? "#fbbf24"
           : isActive ? "#f5f5f4" : "#a8a29e";
         ctx.fillText(n.name, x, y + r + 2.5 / globalScale);
@@ -464,10 +464,10 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
   // ─── リンク色（フォーカスモード対応 + ホバー強調） ────────────────────────
   const linkColor = useCallback(
     (link: object) => {
-      const l    = link as GraphLink;
-      const src  = getLinkEndId(l.source);
-      const tgt  = getLinkEndId(l.target);
-      const w    = l.weight ?? 1;
+      const l = link as GraphLink;
+      const src = getLinkEndId(l.source);
+      const tgt = getLinkEndId(l.target);
+      const w = l.weight ?? 1;
       const base = LINK_COLORS[l.type] ?? "#6b7280";
 
       // ホバー中ペアかどうか（同ペア内の全エッジを全部光らせる）
@@ -524,10 +524,10 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
   // ─── リンク太さ（選択ノード直結エッジを強調） ────────────────────────────
   const linkWidth = useCallback(
     (link: object) => {
-      const l   = link as GraphLink;
+      const l = link as GraphLink;
       const src = getLinkEndId(l.source);
       const tgt = getLinkEndId(l.target);
-      const w   = l.weight ?? 1;
+      const w = l.weight ?? 1;
       const base = LINK_WIDTH[w] ?? 0.7;
 
       if (neighborSet && (src === selectedNodeId || tgt === selectedNodeId)) {
@@ -541,10 +541,10 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
   // ─── パーティクル：フォーカスモードでは接続エッジのみ光らせる ───────────
   const particleWidth = useCallback(
     (link: object) => {
-      const l   = link as GraphLink;
+      const l = link as GraphLink;
       const src = getLinkEndId(l.source);
       const tgt = getLinkEndId(l.target);
-      const w   = l.weight ?? 1;
+      const w = l.weight ?? 1;
 
       if (neighborSet) {
         // フォーカスモード: 選択ノードに直結するエッジのみパーティクル
@@ -566,13 +566,13 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
   // ─── ホバーリンクのノード名解決（tooltip 表示用の最高 weight エッジを使用） ──
   const hoveredSrcName = hoveredDisplayLink
     ? (typeof hoveredDisplayLink.source === "object"
-        ? (hoveredDisplayLink.source as GraphNode).name
-        : graphData.nodes.find((n) => n.id === (hoveredDisplayLink.source as string))?.name ?? "")
+      ? (hoveredDisplayLink.source as GraphNode).name
+      : graphData.nodes.find((n) => n.id === (hoveredDisplayLink.source as string))?.name ?? "")
     : "";
   const hoveredTgtName = hoveredDisplayLink
     ? (typeof hoveredDisplayLink.target === "object"
-        ? (hoveredDisplayLink.target as GraphNode).name
-        : graphData.nodes.find((n) => n.id === (hoveredDisplayLink.target as string))?.name ?? "")
+      ? (hoveredDisplayLink.target as GraphNode).name
+      : graphData.nodes.find((n) => n.id === (hoveredDisplayLink.target as string))?.name ?? "")
     : "";
 
   return (
@@ -588,8 +588,14 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       {hoveredDisplayLink && (
         <div
           className="absolute pointer-events-none z-50 rounded-lg px-3 py-2 shadow-xl backdrop-blur-sm text-xs"
-          style={{ backgroundColor: "rgba(255,255,255,0.97)", border: "1px solid var(--border)", color: "var(--ink)" }}
-          style={{ left: mousePos.x + 14, top: mousePos.y - 42, maxWidth: 240 }}
+          style={{
+            backgroundColor: "rgba(255,255,255,0.97)",
+            border: "1px solid var(--border)",
+            color: "var(--ink)",
+            left: mousePos.x + 14,
+            top: mousePos.y - 42,
+            maxWidth: 240
+          }}
         >
           <div className="flex items-center gap-2 font-semibold">
             <div
@@ -689,7 +695,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
             setHoveredDisplayLink(null);
             return;
           }
-          const l     = link as GraphLink;
+          const l = link as GraphLink;
           const srcId = getLinkEndId(l.source);
           const tgtId = getLinkEndId(l.target);
 
