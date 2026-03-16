@@ -618,8 +618,13 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       {hoveredNode && !selectedNodeId && !hoveredDisplayLink && (
         <div
           className="absolute pointer-events-none z-50 rounded-xl px-3.5 py-2.5 shadow-2xl backdrop-blur-sm"
-          style={{ backgroundColor: "rgba(255,255,255,0.97)", border: "1px solid var(--border)" }}
-          style={{ left: mousePos.x + 16, top: mousePos.y - 60, minWidth: 140 }}
+          style={{
+            backgroundColor: "rgba(255,255,255,0.97)",
+            border: "1px solid var(--border)",
+            left: mousePos.x + 16,
+            top: mousePos.y - 60,
+            minWidth: 140
+          }}
         >
           {/* 力士名 */}
           <div className="font-bold text-sm leading-tight" style={{ color: "var(--ink)", fontFamily: "'Noto Serif JP', serif" }}>{hoveredNode.name}</div>
