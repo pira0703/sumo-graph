@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerClient } from "@/lib/supabase";
 
 const ROLE_LEVELS: Record<string, number> = {
   user: 1, paid: 2, editor: 3, admin: 4,
@@ -10,16 +11,17 @@ export default async function RikishiLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // セッション確認（cookie ベース）
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 未ログインはサインインへ
   if (!user) {
     redirect("/auth/signin?next=/");
   }
 
-  // ロール確認
-  const { data: profile } = await supabase
+  // Service Role で profiles を取得（RLS バイパス）
+  const serviceSupabase = createServerClient();
+  const { data: profile } = await serviceSupabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
@@ -28,7 +30,6 @@ export default async function RikishiLayout({
   const role = profile?.role as string | null;
   const level = role ? (ROLE_LEVELS[role] ?? 0) : 0;
 
-  // editor 未満はアクセス拒否
   if (level < ROLE_LEVELS.editor) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-stone-950">

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerClient } from "@/lib/supabase";
 
 const ROLE_LEVELS: Record<string, number> = {
   user: 1, paid: 2, editor: 3, admin: 4,
@@ -10,16 +11,17 @@ export default async function BanzukeLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // セッション確認（cookie ベース）
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 未ログインはログインページへ
   if (!user) {
     redirect("/auth/signin?next=/banzuke");
   }
 
-  // ロール確認
-  const { data: profile } = await supabase
+  // Service Role で profiles を取得（RLS バイパス）
+  const serviceSupabase = createServerClient();
+  const { data: profile } = await serviceSupabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
@@ -28,7 +30,6 @@ export default async function BanzukeLayout({
   const role = profile?.role as string | null;
   const level = role ? (ROLE_LEVELS[role] ?? 0) : 0;
 
-  // paid 未満はロック画面
   if (level < ROLE_LEVELS.paid) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-stone-950">
@@ -41,15 +42,13 @@ export default async function BanzukeLayout({
               有料プランへのアップグレードが必要です。
             </p>
           </div>
-          <div className="flex flex-col gap-2">
-            <a
-              href="/"
-              className="block w-full py-2.5 px-4 rounded-lg bg-stone-800 border border-stone-700
-                text-stone-300 text-sm hover:bg-stone-700 transition-colors"
-            >
-              ← 相関図に戻る
-            </a>
-          </div>
+          <a
+            href="/"
+            className="block w-full py-2.5 px-4 rounded-lg bg-stone-800 border border-stone-700
+              text-stone-300 text-sm hover:bg-stone-700 transition-colors"
+          >
+            ← 相関図に戻る
+          </a>
           <p className="text-stone-600 text-xs">
             現在のロール: <span className="text-stone-400">{role ?? "なし"}</span>
           </p>
