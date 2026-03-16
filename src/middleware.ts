@@ -1,43 +1,52 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Basic認証ミドルウェア
- * 本番環境の /admin 以下を BASIC_AUTH_USER / BASIC_AUTH_PASSWORD で保護する。
- * Supabase Auth 実装後はここを置き換える予定。
+ * Supabase Auth ミドルウェア
+ * - Cookie ベースのセッションをリフレッシュする
+ * - /admin 以下は未ログインなら /auth/signin にリダイレクト
+ * - ロール（admin/paid/user）のチェックは admin/layout.tsx が担当
  */
-export function middleware(request: NextRequest) {
-  // ローカル開発環境はスルー
-  if (process.env.NODE_ENV !== 'production') {
-    return NextResponse.next()
-  }
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
 
-  const basicAuth = request.headers.get('authorization')
-
-  if (basicAuth) {
-    const authValue = basicAuth.split(' ')[1]
-    const decoded = Buffer.from(authValue, 'base64').toString('utf-8')
-    const [user, ...passParts] = decoded.split(':')
-    const password = passParts.join(':') // パスワードに : が含まれる場合も安全に扱う
-
-    const validUser = process.env.BASIC_AUTH_USER
-    const validPassword = process.env.BASIC_AUTH_PASSWORD
-
-    if (user === validUser && password === validPassword) {
-      return NextResponse.next()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
     }
+  )
+
+  // ⚠️ getUser() は必ずここで呼ぶこと（セッションリフレッシュに必要）
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // /admin 以下は認証必須
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    const signInUrl = request.nextUrl.clone()
+    signInUrl.pathname = '/auth/signin'
+    signInUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    return NextResponse.redirect(signInUrl)
   }
 
-  // 認証失敗 → ブラウザに認証ダイアログを要求
-  return new NextResponse('管理者認証が必要です', {
-    status: 401,
-    headers: {
-      'WWW-Authenticate': 'Basic realm="Sumo Graph Admin"',
-    },
-  })
+  return supabaseResponse
 }
 
 export const config = {
-  // /admin および /admin/* にのみ適用
-  matcher: ['/admin', '/admin/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
