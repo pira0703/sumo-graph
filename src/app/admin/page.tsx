@@ -37,6 +37,13 @@ const CARDS = [
     desc:  "今の切り口（キュレーションテーマ）の管理",
     color: "rose",
   },
+  {
+    href:  "/admin/users",
+    emoji: "👥",
+    title: "ユーザー管理",
+    desc:  "ロール変更（admin / editor / paid / user）",
+    color: "slate",
+  },
 ];
 
 const COLOR_MAP: Record<string, string> = {
@@ -45,6 +52,7 @@ const COLOR_MAP: Record<string, string> = {
   violet: "border-violet-700/40 hover:border-violet-500/60 hover:bg-violet-900/10",
   green:  "border-green-700/40 hover:border-green-500/60 hover:bg-green-900/10",
   rose:   "border-rose-700/40  hover:border-rose-500/60  hover:bg-rose-900/10",
+  slate:  "border-slate-700/40 hover:border-slate-500/60 hover:bg-slate-900/10",
 };
 
 export default function AdminIndexPage() {
