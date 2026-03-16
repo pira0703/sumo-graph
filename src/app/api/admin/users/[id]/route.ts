@@ -2,9 +2,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createServerClient } from '@/lib/supabase'
 
+const VALID_ROLES = ['admin', 'editor', 'paid', 'user'] as const
+type Role = typeof VALID_ROLES[number]
+
 /**
  * PATCH /api/admin/users/[id]
  * ロール変更（admin のみ実行可能）
+ * ⚠️ 自分自身のロールは変更不可（admin ロックアウト防止）
  */
 export async function PATCH(
   request: NextRequest,
@@ -20,6 +24,14 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // 自分自身のロールは変更不可（誤操作でロックアウト防止）
+  if (user.id === id) {
+    return NextResponse.json(
+      { error: '自分自身のロールは変更できません' },
+      { status: 403 }
+    )
+  }
+
   const serviceSupabase = createServerClient()
   const { data: callerProfile } = await serviceSupabase
     .from('profiles')
@@ -31,10 +43,13 @@ export async function PATCH(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // ロール更新
+  // ロール値のバリデーション
   const { role } = await request.json()
-  if (!['admin', 'paid', 'user'].includes(role)) {
-    return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+  if (!VALID_ROLES.includes(role as Role)) {
+    return NextResponse.json(
+      { error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` },
+      { status: 400 }
+    )
   }
 
   const { error } = await serviceSupabase
