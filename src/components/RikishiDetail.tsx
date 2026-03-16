@@ -253,7 +253,10 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
   });
 
   return (
-    <div className="absolute top-0 right-0 h-full w-80 overflow-y-auto z-10 flex flex-col" style={{ backgroundColor: "var(--white)", borderLeft: "1px solid var(--border)" }}>
+    <div
+      className="fixed bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl border-t sm:absolute sm:top-0 sm:bottom-auto sm:left-auto sm:right-0 sm:h-full sm:w-80 sm:rounded-t-none sm:border-t-0 sm:border-l overflow-y-auto z-30 sm:z-10 flex flex-col"
+      style={{ backgroundColor: "var(--white)", borderColor: "var(--border)" }}
+    >
       {/* ヘッダー */}
       <div className="sticky top-0 z-10" style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-4 pt-3 pb-0">

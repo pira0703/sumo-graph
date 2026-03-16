@@ -87,7 +87,8 @@ function HomePageContent() {
   const [selectedId, setSelectedId]   = useState<string | null>(null);
   const [heyaOptions, setHeyaOptions] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading]         = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ─ 認証・ロール
   const { role } = useAuthRole();
@@ -98,8 +99,18 @@ function HomePageContent() {
   const [themePos, setThemePos] = useState<{ x: number; y: number } | null>(null);
   const themeDragOffset = useRef({ x: 0, y: 0 });
 
-  // マウント後: グラフエリア中央に配置
+  // モバイル検出 + サイドバー初期状態
   useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    if (window.innerWidth >= 640) setSidebarOpen(true);
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // マウント後: グラフエリア中央に配置（PCのみ）
+  useEffect(() => {
+    if (window.innerWidth < 640) return;
     const PANEL_W = 360;
     const sidebarW = 256;
     const graphW = window.innerWidth - sidebarW;
@@ -316,8 +327,19 @@ function HomePageContent() {
         <PreviewRoleBanner previewRole={previewRole} onChangePreview={setPreviewRole} />
       )}
 
+      {/* モバイル: オーバーレイ背景 */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* 左サイドバー */}
-      <div className={`flex-shrink-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} ${role === "admin" ? "pt-9" : ""}`}>
+      <div className={isMobile
+        ? `fixed inset-y-0 left-0 z-40 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} ${role === "admin" ? "pt-9" : ""}`
+        : `flex-shrink-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-0 overflow-hidden"} ${role === "admin" ? "pt-9" : ""}`
+      }>
         <div className="w-64 h-full flex flex-col p-3 gap-3 overflow-y-auto border-r" style={{ backgroundColor: "var(--white)", borderColor: "var(--border)" }}>
 
           {/* タイトル + ログインボタン */}
@@ -394,26 +416,41 @@ function HomePageContent() {
       </div>
 
       {/* サイドバー開閉ボタン */}
-      <button
-        onClick={() => setSidebarOpen((v) => !v)}
-        className="absolute z-20 w-5 h-12 flex items-center justify-center rounded-r-lg border-r border-t border-b transition-all"
-        style={{
-          backgroundColor: "var(--white)",
-          borderColor: "var(--border)",
-          color: "var(--purple)",
-          left: sidebarOpen ? "256px" : "0px",
-          top: role === "admin" ? "calc(50% + 18px)" : "50%",
-          transform: "translateY(-50%)",
-        }}
-      >
-        {sidebarOpen ? "‹" : "›"}
-      </button>
+      {isMobile ? (
+        <button
+          onClick={() => setSidebarOpen((v) => !v)}
+          className="fixed z-50 w-10 h-10 rounded-full shadow-xl flex items-center justify-center text-base"
+          style={{
+            backgroundColor: "var(--purple)",
+            color: "white",
+            top: role === "admin" ? "calc(2.25rem + 1rem)" : "1rem",
+            right: "1rem",
+          }}
+        >
+          {sidebarOpen ? "✕" : "☰"}
+        </button>
+      ) : (
+        <button
+          onClick={() => setSidebarOpen((v) => !v)}
+          className="absolute z-20 w-5 h-12 flex items-center justify-center rounded-r-lg border-r border-t border-b transition-all"
+          style={{
+            backgroundColor: "var(--white)",
+            borderColor: "var(--border)",
+            color: "var(--purple)",
+            left: sidebarOpen ? "256px" : "0px",
+            top: role === "admin" ? "calc(50% + 18px)" : "50%",
+            transform: "translateY(-50%)",
+          }}
+        >
+          {sidebarOpen ? "‹" : "›"}
+        </button>
+      )}
 
       {/* メイン：グラフ */}
       <div className={`flex-1 relative overflow-hidden ${role === "admin" ? "pt-9" : ""}`}>
 
         {/* 力士検索ボックス */}
-        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2" style={{ maxWidth: "calc(100% - 5rem)" }}>
           <GraphSearch onSelect={handleSearch} />
           {hiddenWarning && (
             <div className="bg-amber-950/95 border border-amber-700/70 rounded-lg px-3 py-2 text-xs text-amber-200 shadow-xl backdrop-blur-sm flex items-center gap-2 max-w-64">
@@ -443,8 +480,23 @@ function HomePageContent() {
           </div>
         )}
 
-        {/* ─ フローティングテーマパネル（ドラッグ可能・中央寄せ初期配置） ── */}
-        {themePos && (
+        {/* ─ テーマパネル ─────────────────────────────── */}
+        {isMobile ? (
+          !selectedId && (
+            <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
+              <div className="rounded-2xl shadow-xl overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.95)", border: "1px solid var(--purple)" }}>
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <span className="text-3xl leading-none flex-shrink-0">{activeTheme.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold leading-snug" style={{ color: "var(--ink)" }}>{activeTheme.label}</p>
+                    <p className="text-xs mt-0.5 leading-relaxed line-clamp-1" style={{ color: "var(--ink-muted)" }}>{activeTheme.description}</p>
+                  </div>
+                  <button onClick={handleReshuffle} title="別の切り口を見る" className="shrink-0 text-xl leading-none" style={{ color: "var(--border-dark)" }}>🔀</button>
+                </div>
+              </div>
+            </div>
+          )
+        ) : themePos && (
           <div className="absolute z-20 select-none" style={{ left: themePos.x, top: themePos.y }}>
             <div className="backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden w-[360px]" style={{ backgroundColor: "rgba(255,255,255,0.95)", border: "1px solid var(--purple)" }}>
               {/* ドラッグハンドル */}

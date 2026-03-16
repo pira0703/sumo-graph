@@ -100,7 +100,7 @@ function RikishiCell({
         {entry.rikishi?.shikona ?? "?"}
       </span>
       {entry.rank_display && (
-        <span className="text-xs shrink-0 tabular-nums" style={{ color: "var(--ink-muted)" }}>
+        <span className="hidden sm:inline text-xs shrink-0 tabular-nums" style={{ color: "var(--ink-muted)" }}>
           {entry.rank_display}
         </span>
       )}
@@ -280,8 +280,9 @@ export default function BanzukePage() {
       {/* ヘッダー */}
       <header className="sticky top-0 z-20 px-4 py-3"
         style={{ backgroundColor: "var(--white)", borderBottom: "1px solid var(--border)" }}>
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <div className="flex items-center gap-2 shrink-0">
+        <div className="max-w-2xl mx-auto flex items-center gap-2 sm:gap-4">
+          {/* PC: 相関図 | 力士 ナビ */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
             <Link href="/" className="text-sm transition-colors hover:text-enishi"
               style={{ color: "var(--ink-muted)" }}>
               相関図
@@ -292,20 +293,26 @@ export default function BanzukePage() {
               力士
             </Link>
           </div>
-          <h1 className="font-bold text-lg flex-1 text-center" style={{ color: "var(--purple)" }}>
+          {/* モバイル: ← のみ */}
+          <Link href="/" className="sm:hidden text-sm px-1 shrink-0 transition-colors hover:text-enishi"
+            style={{ color: "var(--ink-muted)" }}>
+            ←
+          </Link>
+          <h1 className="font-bold text-base sm:text-lg flex-1 text-center" style={{ color: "var(--purple)" }}>
             番付
           </h1>
+          {/* 編集ボタン（PCのみ） */}
           {canEdit ? (
             <Link
               href={`/banzuke/${bashoParam}/edit`}
-              className="text-xs px-2 py-1 rounded transition-colors shrink-0 hover:text-enishi"
+              className="hidden sm:block text-xs px-2 py-1 rounded transition-colors shrink-0 hover:text-enishi"
               style={{ backgroundColor: "var(--purple-pale)", color: "var(--purple)", border: "1px solid var(--border)" }}
             >
               編集
             </Link>
           ) : (
             <span
-              className="text-xs px-2 py-1 rounded cursor-not-allowed shrink-0"
+              className="hidden sm:block text-xs px-2 py-1 rounded cursor-not-allowed shrink-0"
               style={{ backgroundColor: "var(--washi)", color: "var(--border-dark)", border: "1px solid var(--border)" }}
               title="editor 以上で利用可能"
             >
@@ -314,7 +321,7 @@ export default function BanzukePage() {
           )}
           {/* 場所セレクト */}
           <select
-            className="rounded px-2 py-1 text-sm focus:outline-none"
+            className="rounded px-1.5 sm:px-2 py-1 text-xs sm:text-sm focus:outline-none shrink-0 max-w-[110px] sm:max-w-none"
             style={{ backgroundColor: "var(--white)", border: "1px solid var(--border)", color: "var(--ink)" }}
             value={bashoParam}
             onChange={e => handleBashoChange(e.target.value)}
