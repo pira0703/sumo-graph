@@ -1,0 +1,33 @@
+# 依存関係
+/node_modules
+/.pnp
+.pnp.js
+
+# Next.js ビルド成果物
+/.next/
+/out/
+
+# 環境変数（絶対にコミットしない）
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# macOS
+.DS_Store
+*.pem
+
+# ログ
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python スクリプト用
+scripts/data/*.json
+scripts/data/*.csv
+__pycache__/
+*.py[cod]
