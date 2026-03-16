@@ -8,6 +8,7 @@ import type { ConnectionItem } from "@/app/api/rikishi/[id]/connections/route";
 import { LINK_COLORS } from "@/constants/linkColors";
 
 interface Props {
+  canEdit: boolean;
   rikishiId: string | null;
   onClose: () => void;
   onNavigate: (id: string) => void;
@@ -216,7 +217,7 @@ function BanzukeHistoryTab({ rikishiId, bashoId }: { rikishiId: string; bashoId:
   );
 }
 
-export default function RikishiDetail({ rikishiId, onClose, onNavigate }: Props) {
+export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit }: Props) {
   const [rikishi, setRikishi] = useState<Rikishi | null>(null);
   const [connections, setConnections] = useState<ConnectionItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -259,12 +260,21 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate }: Props)
           <span className="text-amber-400 font-bold text-sm">力士プロフィール</span>
           <div className="flex items-center gap-2">
             {rikishiId && (
-              <Link
-                href={`/rikishi/${rikishiId}/edit`}
-                className="text-stone-400 hover:text-amber-400 text-xs px-2 py-1 rounded border border-stone-700 hover:border-amber-400 transition-colors"
-              >
-                ✏️ 編集
-              </Link>
+              canEdit ? (
+                <Link
+                  href={`/rikishi/${rikishiId}/edit`}
+                  className="text-stone-400 hover:text-amber-400 text-xs px-2 py-1 rounded border border-stone-700 hover:border-amber-400 transition-colors"
+                >
+                  ✏️ 編集
+                </Link>
+              ) : (
+                <span
+                  className="text-stone-700 text-xs px-2 py-1 rounded border border-stone-800 cursor-not-allowed select-none"
+                  title="editor 以上で利用可能"
+                >
+                  🔒 編集
+                </span>
+              )
             )}
             <button onClick={onClose} className="text-stone-400 hover:text-white text-xl leading-none">×</button>
           </div>
