@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
 
 export type Role = 'admin' | 'editor' | 'paid' | 'user' | null // null = 未ログイン
 
@@ -23,6 +22,10 @@ type AuthRoleState = {
   loading: boolean
 }
 
+/**
+ * ログイン中ユーザーのロールを取得するフック
+ * /api/me 経由でサーバーサイドから取得（RLS バイパス、サービスロール使用）
+ */
 export function useAuthRole(): AuthRoleState {
   const [state, setState] = useState<AuthRoleState>({
     role: null,
@@ -32,26 +35,19 @@ export function useAuthRole(): AuthRoleState {
   })
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient()
-    async function fetchRole() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setState({ role: null, userId: null, avatar: null, loading: false })
-        return
-      }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      setState({
-        role: (profile?.role as Role) ?? 'user',
-        userId: user.id,
-        avatar: user.user_metadata?.avatar_url ?? null,
-        loading: false,
+    fetch('/api/me')
+      .then((r) => r.json())
+      .then((data: { role: Role; userId: string | null; avatar: string | null }) => {
+        setState({
+          role: data.role,
+          userId: data.userId,
+          avatar: data.avatar,
+          loading: false,
+        })
       })
-    }
-    fetchRole()
+      .catch(() => {
+        setState({ role: null, userId: null, avatar: null, loading: false })
+      })
   }, [])
 
   return state
