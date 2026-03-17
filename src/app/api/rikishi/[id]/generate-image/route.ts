@@ -27,17 +27,17 @@ function buildPrompt(data: {
   born_place: string | null;
   heya_name: string | null;
 }) {
-  const rank   = data.highest_rank ? RANK_LABELS[data.highest_rank] ?? data.highest_rank : "力士";
-  const origin = data.born_place ?? "日本";
-  const heya   = data.heya_name ? `${data.heya_name}部屋` : "相撲部屋";
+  const rank = data.highest_rank ? RANK_LABELS[data.highest_rank] ?? data.highest_rank : "professional sumo wrestler";
+  const heya = data.heya_name ? `${data.heya_name} sumo stable` : "sumo stable";
 
   return [
-    `Professional sumo wrestler portrait illustration, anime/manga style.`,
-    `Character name: ${data.shikona}, rank: ${rank}, from ${origin}, belonging to ${heya}.`,
-    `Strong athletic build, wearing traditional mawashi (sumo belt),`,
-    `confident expression, stadium background with Japanese aesthetic.`,
-    `Clean linework, vibrant colors, high quality illustration.`,
-    `Square composition, bust shot.`,
+    `Photorealistic portrait photograph of a Japanese professional sumo wrestler,`,
+    `${rank} rank, belonging to ${heya}.`,
+    `Wearing traditional black mawashi (sumo loincloth).`,
+    `Powerful athletic physique, short hair, serious and dignified expression.`,
+    `Shot in a traditional Japanese sumo arena (kokugikan) with soft studio lighting.`,
+    `DSLR camera, 85mm lens, shallow depth of field, natural skin texture,`,
+    `upper body portrait, square crop, 8K resolution, photorealistic.`,
   ].join(" ");
 }
 
@@ -72,8 +72,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   const body = await req.json().catch(() => ({}));
   const finalPrompt = (body.prompt as string | undefined) ?? prompt;
 
-  // fal.ai FLUX 1.1 Pro を呼び出す
-  const falRes = await fetch("https://fal.run/fal-ai/flux/schnell", {
+  // fal.ai FLUX Realism（写真リアリズム特化モデル）を呼び出す
+  const falRes = await fetch("https://fal.run/fal-ai/flux-realism", {
     method: "POST",
     headers: {
       "Authorization": `Key ${falKey}`,
@@ -81,8 +81,9 @@ export async function POST(req: NextRequest, { params }: Params) {
     },
     body: JSON.stringify({
       prompt: finalPrompt,
-      image_size: "square_hd",   // 1024×1024
-      num_inference_steps: 4,    // schnell は4ステップで十分
+      image_size: "square_hd",      // 1024×1024
+      num_inference_steps: 28,      // realism モデルは28ステップが推奨
+      guidance_scale: 3.5,
       num_images: 1,
     }),
   });
