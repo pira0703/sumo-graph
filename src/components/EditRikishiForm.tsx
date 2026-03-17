@@ -100,8 +100,10 @@ export default function EditRikishiForm({
 }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("basic");
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [saving, setSaving]           = useState(false);
+  const [msg, setMsg]                 = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [computingRank, setComputingRank] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
 
   // ── 基本情報フォーム ──────────────────────────────────────────────────────
   const [basic, setBasic] = useState({
@@ -299,6 +301,34 @@ export default function EditRikishiForm({
   });
   const setMfVal = (k: keyof ModalForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setMf(p => ({ ...p, [k]: e.target.value }));
+
+  // ── 最高位自動計算 ────────────────────────────────────────────────────────
+  async function autoComputeRank() {
+    setComputingRank(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/compute-highest-rank`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "計算失敗");
+      setBasic(p => ({ ...p, highest_rank: data.highest_rank ?? "" }));
+      flash("ok", `最高位を自動計算しました: ${data.highest_rank}`);
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setComputingRank(false); }
+  }
+
+  // ── AI画像生成 ────────────────────────────────────────────────────────────
+  async function generateAiImage() {
+    setGeneratingImage(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/generate-image`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "生成失敗");
+      setBasic(p => ({ ...p, photo_url: data.photo_url }));
+      flash("ok", "AI画像を生成・登録しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setGeneratingImage(false); }
+  }
 
   // ── ユーティリティ ────────────────────────────────────────────────────────
   function flash(type: "ok" | "err", text: string) {
@@ -517,7 +547,13 @@ export default function EditRikishiForm({
             />
           </div>
           <div>
-            <label className={CLS.label}>最高位</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className={CLS.label} style={{ margin: 0 }}>最高位</label>
+              <button type="button" onClick={autoComputeRank} disabled={computingRank || saving}
+                className="text-xs px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700 text-amber-400 disabled:opacity-40 transition-colors">
+                {computingRank ? "計算中…" : "🏆 banzukeから自動計算"}
+              </button>
+            </div>
             <select className={CLS.input} value={basic.highest_rank} onChange={setB("highest_rank")}>
               <option value="">（未設定）</option>
               {RANK_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -544,9 +580,30 @@ export default function EditRikishiForm({
             <div />{/* 引退年は在籍状態タブで管理 */}
           </div>
           <div><label className={CLS.label}>エピソード</label><textarea className={CLS.input + " h-24 resize-none"} value={basic.episodes} onChange={setB("episodes")} /></div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className={CLS.label}>写真 URL</label><input className={CLS.input} value={basic.photo_url} onChange={setB("photo_url")} /></div>
-            <div><label className={CLS.label}>Wikipedia URL</label><input className={CLS.input} value={basic.wiki_url} onChange={setB("wiki_url")} placeholder="例：https://ja.wikipedia.org/wiki/豊昇龍智勝" /></div>
+          {/* 写真 */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className={CLS.label} style={{ margin: 0 }}>写真</label>
+              <button type="button" onClick={generateAiImage} disabled={generatingImage || saving}
+                className="text-xs px-2 py-0.5 rounded bg-purple-900 hover:bg-purple-800 text-purple-200 disabled:opacity-40 transition-colors flex items-center gap-1">
+                {generatingImage ? (
+                  <><span className="animate-spin inline-block">⟳</span> 生成中（10〜20秒）…</>
+                ) : "✨ AI画像を生成"}
+              </button>
+            </div>
+            <div className="flex gap-3 items-start">
+              {basic.photo_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={basic.photo_url} alt="写真プレビュー"
+                  className="w-16 h-16 rounded-lg object-cover border border-stone-700 shrink-0" />
+              )}
+              <input className={CLS.input} value={basic.photo_url} onChange={setB("photo_url")} placeholder="画像URLを直接入力、またはAI生成ボタンを使用" />
+            </div>
+            <p className="text-stone-600 text-xs">AI生成には FAL_KEY の設定が必要です（fal.ai）</p>
+          </div>
+          <div>
+            <label className={CLS.label}>Wikipedia URL</label>
+            <input className={CLS.input} value={basic.wiki_url} onChange={setB("wiki_url")} placeholder="例：https://ja.wikipedia.org/wiki/豊昇龍智勝" />
           </div>
           <div className="flex justify-end pt-2">
             <button onClick={saveBasic} disabled={saving} className={`${CLS.btn} ${CLS.btnPrimary}`}>
