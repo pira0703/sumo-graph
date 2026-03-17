@@ -11,7 +11,6 @@ export interface RikishiRow {
   active_from_basho: string | null;
   retirement_basho: string | null;
   status:       string;
-  nationality:  string | null;
   heya: { id: string; name: string; ichimon: string | null } | null;
 }
 
@@ -217,9 +216,6 @@ export default function RikishiListClient({ initialRows, heyaOptions }: Props) {
                   <div className="font-medium" style={{ color: "var(--ink)" }}>{r.shikona}</div>
                   {r.yomigana && (
                     <div className="text-xs" style={{ color: "var(--ink-muted)" }}>{r.yomigana}</div>
-                  )}
-                  {r.nationality && r.nationality !== "日本" && (
-                    <div className="text-xs" style={{ color: "var(--border-dark)" }}>{r.nationality}</div>
                   )}
                 </td>
                 {/* 部屋 */}

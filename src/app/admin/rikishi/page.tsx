@@ -11,7 +11,7 @@ export default async function AdminRikishiPage() {
   const [rikishiRes, heyaRes] = await Promise.all([
     supabase
       .from("rikishi")
-      .select("id, shikona, yomigana, highest_rank, active_from_basho, retirement_basho, status, nationality, heya:heya_id(id, name, ichimon)")
+      .select("id, shikona, yomigana, highest_rank, active_from_basho, retirement_basho, status, heya:heya_id(id, name, ichimon)")
       .order("shikona"),
     supabase
       .from("heya")

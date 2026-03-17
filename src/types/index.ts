@@ -139,7 +139,6 @@ export interface Rikishi {
   birth_date: string | null;       // DATE as ISO string (YYYY-MM-DD)
   highest_rank: Rank | null;
   active_from_basho:  string | null; // basho id 'YYYY-MM'
-  nationality: string | null;
   high_school: string | null;
   university: string | null;
   episodes: string | null;

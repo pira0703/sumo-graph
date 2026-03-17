@@ -4,7 +4,7 @@ import { createServerClient } from "@/lib/supabase";
 // 更新を許可するカラム一覧
 const ALLOWED_FIELDS = [
   "shikona", "yomigana", "real_name", "heya_id", "born_place", "birth_date",
-  "highest_rank", "active_from_basho", "retirement_basho", "nationality", "high_school", "university",
+  "highest_rank", "active_from_basho", "retirement_basho", "high_school", "university",
   "episodes", "photo_url", "wiki_url", "shisho_id",
   "oyakata_id",
   // migration_retirement_oyakata_history.sql で追加

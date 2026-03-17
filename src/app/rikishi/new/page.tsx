@@ -19,7 +19,6 @@ export default function NewRikishiPage() {
   const [yomigana,         setYomigana]          = useState("");
   const [realName,         setRealName]          = useState("");
   const [heyaId,           setHeyaId]            = useState("");
-  const [nationality,      setNationality]       = useState("日本");
   const [bornPlace,        setBornPlace]         = useState("");
   const [birthDate,        setBirthDate]         = useState("");
   const [activeFromBasho,  setActiveFromBasho]   = useState("");
@@ -43,7 +42,6 @@ export default function NewRikishiPage() {
           yomigana:          yomigana          || undefined,
           real_name:         realName          || undefined,
           heya_id:           heyaId            || undefined,
-          nationality:       nationality       || undefined,
           born_place:        bornPlace         || undefined,
           birth_date:        birthDate         || undefined,
           active_from_basho: activeFromBasho   || undefined,
@@ -92,19 +90,13 @@ export default function NewRikishiPage() {
             <input className={INPUT} value={realName} onChange={e => setRealName(e.target.value)} placeholder="例：ガントルガ・ガンエルデネ" />
           </div>
 
-          {/* 部屋・国籍 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={LABEL}>部屋</label>
-              <select className={INPUT} value={heyaId} onChange={e => setHeyaId(e.target.value)}>
-                <option value="">（未設定）</option>
-                {heya.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={LABEL}>国籍</label>
-              <input className={INPUT} value={nationality} onChange={e => setNationality(e.target.value)} placeholder="例：モンゴル" />
-            </div>
+          {/* 部屋 */}
+          <div>
+            <label className={LABEL}>部屋</label>
+            <select className={INPUT} value={heyaId} onChange={e => setHeyaId(e.target.value)}>
+              <option value="">（未設定）</option>
+              {heya.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+            </select>
           </div>
 
           {/* 出身地・生年月日 */}

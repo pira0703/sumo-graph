@@ -408,9 +408,6 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
                 value={rikishi.active_from_basho}
               />
             )}
-            {rikishi.nationality && rikishi.nationality !== "日本" && (
-              <Row label="国籍" value={rikishi.nationality} />
-            )}
             {/* 学歴（高校・大学を個別表示） */}
             {edu.highSchool && (
               <Row label="出身高校" value={edu.highSchool} />

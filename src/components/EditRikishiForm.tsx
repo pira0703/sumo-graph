@@ -113,7 +113,6 @@ export default function EditRikishiForm({
     heya_id:         rikishi.heya_id ?? "",
     born_place:      rikishi.born_place ?? "",
     birth_date:      rikishi.birth_date ?? "",
-    nationality:     rikishi.nationality ?? "日本",
     high_school:     (rikishi as unknown as { high_school?: string | null }).high_school ?? "",
     university:      (rikishi as unknown as { university?: string | null }).university ?? "",
     highest_rank:    rikishi.highest_rank ?? "",
@@ -527,10 +526,9 @@ export default function EditRikishiForm({
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div><label className={CLS.label}>出身地</label><input className={CLS.input} value={basic.born_place} onChange={setB("born_place")} /></div>
             <div><label className={CLS.label}>生年月日</label><input type="date" className={CLS.input} value={basic.birth_date} onChange={setB("birth_date")} /></div>
-            <div><label className={CLS.label}>国籍</label><input className={CLS.input} value={basic.nationality} onChange={setB("nationality")} /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <SchoolCombobox

@@ -4,7 +4,7 @@ import { createServerClient } from "@/lib/supabase";
 /** POST /api/rikishi
  * 新規力士を作成する
  * 必須: shikona
- * 任意: yomigana, heya_id, birth_date, active_from_basho, nationality, status, retirement_basho
+ * 任意: yomigana, heya_id, birth_date, active_from_basho, status, retirement_basho
  */
 export async function POST(req: NextRequest) {
   const supabase = createServerClient();
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const optionalFields = [
     "yomigana", "heya_id", "birth_date", "active_from_basho",
-    "nationality", "status", "retirement_basho",
+    "status", "retirement_basho",
   ] as const;
   for (const f of optionalFields) {
     if (body[f] !== undefined && body[f] !== "" && body[f] !== null) {

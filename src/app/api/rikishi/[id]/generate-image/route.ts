@@ -25,11 +25,10 @@ function buildPrompt(data: {
   shikona: string;
   highest_rank: string | null;
   born_place: string | null;
-  nationality: string | null;
   heya_name: string | null;
 }) {
   const rank   = data.highest_rank ? RANK_LABELS[data.highest_rank] ?? data.highest_rank : "力士";
-  const origin = data.born_place ?? data.nationality ?? "日本";
+  const origin = data.born_place ?? "日本";
   const heya   = data.heya_name ? `${data.heya_name}部屋` : "相撲部屋";
 
   return [
@@ -58,7 +57,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   // 力士データを取得
   const { data: rikishi, error: rErr } = await supabase
     .from("rikishi")
-    .select("shikona, highest_rank, born_place, nationality, heya_id, heya(name)")
+    .select("shikona, highest_rank, born_place, heya_id, heya(name)")
     .eq("id", id)
     .single();
 
@@ -122,7 +121,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   const { data: rikishi, error: rErr } = await supabase
     .from("rikishi")
-    .select("shikona, highest_rank, born_place, nationality, heya(name)")
+    .select("shikona, highest_rank, born_place, heya(name)")
     .eq("id", id)
     .single();
 
