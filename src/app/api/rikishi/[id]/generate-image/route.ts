@@ -29,9 +29,10 @@ function buildImg2ImgPrompt(heya_name: string | null, highest_rank: string | nul
   const rank = highest_rank ? RANK_LABELS[highest_rank] ?? highest_rank : "sumo wrestler";
   const heya = heya_name ? `${heya_name} stable` : "sumo stable";
   return [
-    `Professional sumo wrestler portrait photograph, ${rank} of ${heya}.`,
-    `Clean neutral studio background, dramatic soft lighting on face,`,
-    `wearing traditional mawashi, sharp focus on face and upper body,`,
+    `Close-up face portrait of a professional sumo wrestler, ${rank} of ${heya}.`,
+    `Tight headshot framing, face centered and filling most of the frame,`,
+    `perfect for circular avatar crop. Clean neutral dark background,`,
+    `dramatic soft lighting, sharp focus on face,`,
     `photorealistic, 8K, DSLR quality portrait photography.`,
   ].join(" ");
 }
@@ -50,7 +51,8 @@ function buildText2ImgPrompt(data: {
     `Wearing traditional black mawashi. Powerful athletic physique,`,
     `short hair, serious dignified expression, traditional Japanese sumo arena background.`,
     `DSLR camera, 85mm lens, shallow depth of field, natural skin texture,`,
-    `upper body portrait, square crop, 8K, photorealistic.`,
+    `tight headshot, face centered and filling the frame, perfect for circular avatar crop,`,
+    `square format, 8K, photorealistic.`,
   ].join(" ");
 }
 
