@@ -1,15 +1,18 @@
-import type { RelationType } from "@/types";
-
-/** 関係タイプごとの線のベースカラー（凡例・グラフで共用） */
-export const LINK_COLORS: Record<RelationType, string> = {
+/**
+ * 関係タイプごとの線のベースカラー（凡例・グラフで共用）
+ * 自動生成タイプ = RelationType
+ * 手動えにし = free-text なのでフォールバック色を使用
+ */
+export const LINK_COLORS: Record<string, string> = {
   "師弟（師匠）":         "#ef4444", // 赤
-  "師弟（弟子）":         "#f87171", // 薄赤
-  "親子・兄弟":           "#f97316", // 橙
   兄弟弟子:               "#eab308", // 黄
   同郷:                   "#3b82f6", // 青
   "土俵の青春（同高校）": "#a855f7", // 紫
   "土俵の青春（同大学）": "#8b5cf6", // 薄紫
   "同期の絆（入門）":     "#06b6d4", // シアン
-  親族:                   "#ec4899", // ピンク
-  "一門の絆":             "#14b8a6", // 青緑（weight 1 = 細線）
+  "一門の絆":             "#14b8a6", // 青緑
+  "えにし（手動）":       "#f59e0b", // アンバー（凡例表示用）
 };
+
+/** 手動えにし（free-text type）のデフォルト色 */
+export const ENISHI_COLOR = "#f59e0b"; // アンバー

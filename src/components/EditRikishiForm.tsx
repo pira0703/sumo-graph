@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import type {
   Rikishi, Heya, OyakataMaster, OyakataNameHistory,
   RikishiStatus, HeyaRole, OyakataHistoryReason, BanzukeEntry, Basho,
-  RelationType,
+  EnishiRow,
 } from "@/types";
+import { ENISHI_SUGGESTION_TYPES } from "@/types";
 import SchoolCombobox from "@/components/SchoolCombobox";
 import RikishiCombobox from "@/components/RikishiCombobox";
 import Link from "next/link";
@@ -50,15 +51,6 @@ interface ModalForm {
 }
 
 // ─── えにし・師匠履歴の型 ─────────────────────────────────────────────────────
-
-interface RelationshipRow {
-  id:            string;
-  partner:       { id: string; shikona: string; photo_url: string | null; status: string } | null;
-  relation_type: RelationType;
-  description:   string | null;
-  created_at:    string;
-  direction:     "a" | "b";
-}
 
 interface ShishoHistoryRow {
   id:         string;
@@ -158,50 +150,52 @@ export default function EditRikishiForm({
     return `${p}${n}${s}`;
   }
 
-  // ── えにし（relationships） ────────────────────────────────────────────────
-  const [enishi, setEnishi]           = useState<RelationshipRow[]>([]);
-  const [enishiLoaded, setEnishiLoaded] = useState(false);
+  // ── えにし（enishi N:N） ───────────────────────────────────────────────────
+  const [enishi, setEnishi]               = useState<EnishiRow[]>([]);
+  const [enishiLoaded, setEnishiLoaded]   = useState(false);
   const [enishiLoading, setEnishiLoading] = useState(false);
-  const [enishiModal, setEnishiModal] = useState(false);
-  const [enishiForm, setEnishiForm]   = useState({
-    partner_id:    null as string | null,
-    relation_type: "師弟（師匠）" as RelationType,
+  const [enishiModal, setEnishiModal]     = useState(false);
+  const [enishiForm, setEnishiForm]       = useState({
+    relation_type: "",
     description:   "",
+    member_ids:    [] as (string | null)[],  // null = 未選択スロット
   });
-
-  const RELATION_TYPES: RelationType[] = [
-    "師弟（師匠）", "師弟（弟子）", "親子・兄弟", "兄弟弟子",
-    "同郷", "土俵の青春（同高校）", "土俵の青春（同大学）",
-    "同期の絆（入門）", "親族", "一門の絆",
-  ];
 
   async function loadEnishi() {
     if (enishiLoaded) return;
     setEnishiLoading(true);
     try {
-      const res = await fetch(`/api/rikishi/${rikishi.id}/relationships`);
+      const res = await fetch(`/api/rikishi/${rikishi.id}/enishi`);
       const data = await res.json();
-      setEnishi(data.relationships ?? []);
+      setEnishi(Array.isArray(data) ? data : []);
       setEnishiLoaded(true);
     } catch { /* ignore */ } finally { setEnishiLoading(false); }
   }
 
+  function openEnishiModal() {
+    setEnishiForm({ relation_type: "", description: "", member_ids: [null, null] });
+    setEnishiModal(true);
+  }
+
   async function addEnishi() {
-    if (!enishiForm.partner_id) { flash("err", "相手の力士を選んでください"); return; }
+    const validIds = enishiForm.member_ids.filter((id): id is string => !!id);
+    // 自分自身を含む（サーバー側で処理するのでここでは含めない）
+    const allIds = [rikishi.id, ...validIds.filter(id => id !== rikishi.id)];
+    if (allIds.length < 2) { flash("err", "メンバーを1名以上選んでください"); return; }
+    if (!enishiForm.relation_type.trim()) { flash("err", "縁の種別を入力してください"); return; }
     setSaving(true);
     try {
-      const res = await fetch(`/api/rikishi/${rikishi.id}/relationships`, {
+      const res = await fetch("/api/enishi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          partner_id:    enishiForm.partner_id,
-          relation_type: enishiForm.relation_type,
-          description:   enishiForm.description || null,
+          relation_type: enishiForm.relation_type.trim(),
+          description:   enishiForm.description.trim() || null,
+          member_ids:    allIds,
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "登録失敗");
       setEnishiModal(false);
-      setEnishiForm({ partner_id: null, relation_type: "師弟（師匠）", description: "" });
       setEnishiLoaded(false);
       await loadEnishi();
       flash("ok", "えにしを登録しました");
@@ -210,13 +204,13 @@ export default function EditRikishiForm({
     } finally { setSaving(false); }
   }
 
-  async function deleteEnishi(relId: string) {
+  async function deleteEnishi(enishiId: string) {
     if (!confirm("このえにしを削除しますか？")) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/rikishi/${rikishi.id}/relationships?rel_id=${relId}`, { method: "DELETE" });
+      const res = await fetch(`/api/enishi/${enishiId}`, { method: "DELETE" });
       if (!res.ok) throw new Error((await res.json()).error ?? "削除失敗");
-      setEnishi(prev => prev.filter(r => r.id !== relId));
+      setEnishi(prev => prev.filter(r => r.id !== enishiId));
       flash("ok", "えにしを削除しました");
     } catch (e) {
       flash("err", e instanceof Error ? e.message : "エラー");
@@ -766,11 +760,15 @@ export default function EditRikishiForm({
       {tab === "enishi" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-white font-medium">えにし（手動関係）</h3>
-            <button onClick={() => setEnishiModal(true)} className={`${CLS.btn} ${CLS.btnSecondary} text-xs`}>
+            <div>
+              <h3 className="text-white font-medium">えにし（手動縁）</h3>
+              <p className="text-stone-500 text-xs mt-0.5">自動計算されない縁を自由に登録できます</p>
+            </div>
+            <button onClick={openEnishiModal} className={`${CLS.btn} ${CLS.btnSecondary} text-xs`}>
               ＋ えにしを追加
             </button>
           </div>
+
           {enishiLoading && <p className="text-stone-500 text-sm text-center py-8">読み込み中…</p>}
           {!enishiLoading && enishi.length === 0 && (
             <div className="text-stone-500 text-sm text-center py-12 border border-dashed border-stone-800 rounded-lg">
@@ -779,19 +777,34 @@ export default function EditRikishiForm({
           )}
           {!enishiLoading && enishi.length > 0 && (
             <div className="space-y-2">
-              {enishi.map(r => (
-                <div key={r.id} className="p-4 rounded-lg border border-stone-700 bg-stone-900 flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-amber-300 font-semibold text-sm">{r.partner?.shikona ?? "（不明）"}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-stone-800 text-stone-400">{r.relation_type}</span>
-                      {r.partner?.status === "retired" && <span className="text-xs text-stone-600">引退</span>}
+              {enishi.map(e => (
+                <div key={e.id} className="p-4 rounded-lg border border-stone-700 bg-stone-900">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      {/* 種別バッジ */}
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-300 border border-amber-700/40">
+                        {e.relation_type}
+                      </span>
+                      {/* メンバーチップ */}
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {e.members.map(m => (
+                          <span key={m.rikishi_id}
+                            className={`text-xs px-2 py-0.5 rounded-full border ${
+                              m.rikishi_id === rikishi.id
+                                ? "bg-stone-700 border-stone-500 text-white"
+                                : "bg-stone-800 border-stone-700 text-stone-300"
+                            }`}>
+                            {m.shikona}
+                            {m.status === "retired" && <span className="text-stone-500 ml-1">引退</span>}
+                          </span>
+                        ))}
+                      </div>
+                      {e.description && (
+                        <p className="text-stone-400 text-xs mt-2 leading-relaxed">{e.description}</p>
+                      )}
                     </div>
-                    {r.description && (
-                      <p className="text-stone-400 text-xs mt-1 leading-relaxed">{r.description}</p>
-                    )}
+                    <button onClick={() => deleteEnishi(e.id)} className={`${CLS.btn} ${CLS.btnDanger} text-xs py-1 shrink-0`}>削除</button>
                   </div>
-                  <button onClick={() => deleteEnishi(r.id)} className={`${CLS.btn} ${CLS.btnDanger} text-xs py-1 shrink-0`}>削除</button>
                 </div>
               ))}
             </div>
@@ -800,26 +813,65 @@ export default function EditRikishiForm({
           {/* えにし追加モーダル */}
           {enishiModal && (
             <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 w-full max-w-sm space-y-4">
+              <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto">
                 <h3 className="text-white font-bold">えにしを追加</h3>
+                <p className="text-stone-400 text-xs">
+                  <span className="text-amber-300 font-medium">{rikishi.shikona}</span> は自動でメンバーに含まれます
+                </p>
+
+                {/* 縁の種別（自由入力＋サジェスト） */}
                 <div>
-                  <label className={CLS.label}>相手の力士 *</label>
-                  <RikishiCombobox
-                    value={enishiForm.partner_id}
-                    onChange={(id) => setEnishiForm(p => ({ ...p, partner_id: id }))}
-                    placeholder="四股名で検索"
-                    emptyLabel="（選択してください）"
+                  <label className={CLS.label}>縁の種別 *</label>
+                  <input
+                    list="enishi-type-suggestions"
+                    className={CLS.input}
+                    value={enishiForm.relation_type}
+                    onChange={e => setEnishiForm(p => ({ ...p, relation_type: e.target.value }))}
+                    placeholder="例：ライバル、幼馴染、仲良し…"
                   />
+                  <datalist id="enishi-type-suggestions">
+                    {ENISHI_SUGGESTION_TYPES.map(t => <option key={t} value={t} />)}
+                  </datalist>
                 </div>
+
+                {/* メンバー（複数選択） */}
                 <div>
-                  <label className={CLS.label}>関係種別 *</label>
-                  <select className={CLS.input} value={enishiForm.relation_type}
-                    onChange={e => setEnishiForm(p => ({ ...p, relation_type: e.target.value as RelationType }))}>
-                    {RELATION_TYPES.map(rt => <option key={rt} value={rt}>{rt}</option>)}
-                  </select>
+                  <label className={CLS.label}>メンバー（もう1名以上）</label>
+                  <div className="space-y-2">
+                    {enishiForm.member_ids.map((mid, i) => (
+                      <div key={i} className="flex gap-2">
+                        <div className="flex-1">
+                          <RikishiCombobox
+                            value={mid}
+                            onChange={(id) => setEnishiForm(p => {
+                              const ids = [...p.member_ids];
+                              ids[i] = id;
+                              return { ...p, member_ids: ids };
+                            })}
+                            placeholder="四股名で検索"
+                            emptyLabel="（選択してください）"
+                          />
+                        </div>
+                        {enishiForm.member_ids.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setEnishiForm(p => ({ ...p, member_ids: p.member_ids.filter((_, j) => j !== i) }))}
+                            className="text-stone-500 hover:text-red-400 text-sm px-2"
+                          >✕</button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setEnishiForm(p => ({ ...p, member_ids: [...p.member_ids, null] }))}
+                      className="text-xs text-stone-500 hover:text-amber-400 underline"
+                    >＋ メンバーを追加</button>
+                  </div>
                 </div>
+
+                {/* 説明 */}
                 <div>
-                  <label className={CLS.label}>えにしの説明（任意）</label>
+                  <label className={CLS.label}>説明（任意）</label>
                   <textarea
                     className={CLS.input + " h-20 resize-none"}
                     value={enishiForm.description}
@@ -827,6 +879,7 @@ export default function EditRikishiForm({
                     placeholder="例：高校相撲時代からの旧知。同じ青森出身で切磋琢磨した。"
                   />
                 </div>
+
                 <div className="flex gap-2 justify-end pt-2">
                   <button onClick={() => setEnishiModal(false)} className={`${CLS.btn} ${CLS.btnSecondary}`}>キャンセル</button>
                   <button onClick={addEnishi} disabled={saving} className={`${CLS.btn} ${CLS.btnPrimary}`}>

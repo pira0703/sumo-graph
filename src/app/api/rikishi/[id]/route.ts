@@ -62,16 +62,6 @@ export async function GET(
 
   if (rErr) return NextResponse.json({ error: rErr.message }, { status: 404 });
 
-  const { data: relA } = await supabase
-    .from("relationships")
-    .select("*, rikishi_b:rikishi_b_id(id, shikona, highest_rank, photo_url)")
-    .eq("rikishi_a_id", id);
-
-  const { data: relB } = await supabase
-    .from("relationships")
-    .select("*, rikishi_a:rikishi_a_id(id, shikona, highest_rank, photo_url)")
-    .eq("rikishi_b_id", id);
-
   // 現役力士の場合、最新 banzuke を取得して現在番付を付加
   let currentBanzuke: { basho: string; rank_class: string; rank_number: number | null; rank_side: string | null; rank_display: string | null } | null = null;
   if (rikishi.status !== "retired") {
@@ -87,6 +77,5 @@ export async function GET(
 
   return NextResponse.json({
     rikishi: { ...rikishi, current_banzuke: currentBanzuke },
-    relationships: [...(relA ?? []), ...(relB ?? [])],
   });
 }

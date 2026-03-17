@@ -572,12 +572,10 @@ function HomePageContent() {
 }
 
 // ─── 凡例 ──────────────────────────────────────────────────────────────────────
-const LEGEND_ITEMS: { type: RelationType; weight: number }[] = [
-  { type: "親子・兄弟",           weight: 5 },
+const LEGEND_ITEMS: { type: string; weight: number }[] = [
   { type: "師弟（師匠）",         weight: 4 },
-  { type: "親族",                 weight: 4 },
-  { type: "師弟（弟子）",         weight: 3 },
   { type: "兄弟弟子",             weight: 3 },
+  { type: "えにし（手動）",       weight: 3 },
   { type: "土俵の青春（同高校）", weight: 2 },
   { type: "土俵の青春（同大学）", weight: 2 },
   { type: "同期の絆（入門）",     weight: 2 },

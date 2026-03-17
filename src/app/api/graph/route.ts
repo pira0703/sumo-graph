@@ -19,10 +19,7 @@ import { createServerClient } from "@/lib/supabase";
 import type { GraphData, GraphNode, GraphLink, RelationType, CareerTrend, CareerStage, PromotionSpeed } from "@/types";
 
 const RELATION_WEIGHT: Record<RelationType, number> = {
-  "親子・兄弟":           5,
   "師弟（師匠）":         4,
-  親族:                   4,
-  "師弟（弟子）":         3,
   兄弟弟子:               3,
   "土俵の青春（同高校）": 2,
   "土俵の青春（同大学）": 2,
@@ -126,12 +123,13 @@ export async function GET(req: NextRequest) {
   const seen  = new Set<string>();
   const links: GraphLink[] = [];
 
-  function addLink(aId: string, bId: string, type: RelationType, description: string | null = null) {
+  function addLink(aId: string, bId: string, type: string, description: string | null = null, weight?: number) {
     if (!idSet.has(aId) || !idSet.has(bId)) return;
     const key = edgeKey(aId, bId, type);
     if (seen.has(key)) return;
     seen.add(key);
-    links.push({ source: aId, target: bId, type, description, weight: RELATION_WEIGHT[type] ?? 1 });
+    const w = weight ?? RELATION_WEIGHT[type as RelationType] ?? 3;
+    links.push({ source: aId, target: bId, type, description, weight: w });
   }
 
   function shouldInclude(type: RelationType): boolean {
@@ -241,28 +239,47 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // ─── 手動関係（relationships テーブル）────────────────────────────────────
-  const manualTypes = ["親子・兄弟", "親族"] as RelationType[];
-  const requestedManualTypes = relTypeFilters.length === 0
-    ? manualTypes
-    : manualTypes.filter((t) => relTypeFilters.includes(t));
+  // ─── 手動えにし（enishi / enishi_members テーブル）──────────────────────────
+  // フィルターに関係なく常に表示（手動入力の縁は価値が高い）
+  const rikishiIds = filteredRikishi.map((r) => r.id);
+  const { data: enishiMemberRows } = await supabase
+    .from("enishi_members")
+    .select("enishi_id, rikishi_id")
+    .in("rikishi_id", rikishiIds);
 
-  if (requestedManualTypes.length > 0) {
-    const rikishiIds = filteredRikishi.map((r) => r.id);
-    const { data: manualData } = await supabase
-      .from("relationships")
-      .select("rikishi_a_id, rikishi_b_id, relation_type, description")
-      .in("rikishi_a_id", rikishiIds)
-      .in("rikishi_b_id", rikishiIds)
-      .in("relation_type", requestedManualTypes);
+  if (enishiMemberRows && enishiMemberRows.length > 0) {
+    // enishi_id ごとにメンバーをグループ化
+    const enishiIds = [...new Set(enishiMemberRows.map((m) => m.enishi_id))];
+    const byEnishi = new Map<string, string[]>();
+    for (const m of enishiMemberRows) {
+      if (!byEnishi.has(m.enishi_id)) byEnishi.set(m.enishi_id, []);
+      byEnishi.get(m.enishi_id)!.push(m.rikishi_id);
+    }
 
-    for (const rel of manualData ?? [])
-      addLink(rel.rikishi_a_id, rel.rikishi_b_id, rel.relation_type as RelationType, rel.description);
+    // enishi 本体（relation_type, description）を取得
+    const { data: enishiList } = await supabase
+      .from("enishi")
+      .select("id, relation_type, description")
+      .in("id", enishiIds);
+
+    const enishiMeta = new Map((enishiList ?? []).map((e) => [e.id, e]));
+
+    // idSet に両方含まれるペアのみリンク生成
+    for (const [enishiId, members] of byEnishi) {
+      const inSet = members.filter((m) => idSet.has(m));
+      if (inSet.length < 2) continue;
+      const meta = enishiMeta.get(enishiId);
+      const type = meta?.relation_type ?? "えにし";
+      const desc = meta?.description ?? null;
+      for (let i = 0; i < inSet.length; i++)
+        for (let j = i + 1; j < inSet.length; j++)
+          addLink(inSet[i], inSet[j], type, desc, 3);
+    }
   }
 
   // ─── relation_type フィルター ─────────────────────────────────────────────
   const finalLinks = relTypeFilters.length > 0
-    ? links.filter((l) => relTypeFilters.includes(l.type))
+    ? links.filter((l) => relTypeFilters.includes(l.type as RelationType))
     : links;
 
   return NextResponse.json({ nodes, links: finalLinks } as GraphData);

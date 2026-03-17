@@ -46,17 +46,40 @@ export type Rank =
   | "jonokuchi"
   | "引退";
 
+/**
+ * 自動生成される関係種別（データから計算）
+ * 手動えにしは enishi テーブルで free-text を使用
+ */
 export type RelationType =
   | "師弟（師匠）"
-  | "師弟（弟子）"
-  | "親子・兄弟"
   | "兄弟弟子"
   | "同郷"
   | "土俵の青春（同高校）"
   | "土俵の青春（同大学）"
   | "同期の絆（入門）"
-  | "親族"
   | "一門の絆";
+
+/** 手動えにし登録時のサジェスト候補（自由入力可） */
+export const ENISHI_SUGGESTION_TYPES = [
+  "ライバル", "幼馴染", "同期の仲間", "仲良し", "因縁",
+  "先輩後輩", "師弟（番外）", "同じ出身中学", "出稽古仲間",
+] as const;
+
+/** えにしグループ */
+export interface EnishiRow {
+  id:            string;
+  relation_type: string;  // free-text
+  description:   string | null;
+  created_at:    string;
+  members:       EnishiMember[];
+}
+
+export interface EnishiMember {
+  rikishi_id: string;
+  shikona:    string;
+  photo_url:  string | null;
+  status:     string;
+}
 
 export type EducationFilter = "中卒" | "高卒" | "大卒";
 export type AgeGroupFilter =
@@ -200,9 +223,10 @@ export interface GraphNode {
 export interface GraphLink {
   source: string | GraphNode;
   target: string | GraphNode;
-  type: RelationType;
+  /** 自動生成=RelationType, 手動えにし=free-text */
+  type: string;
   description: string | null;
-  /** 関係の濃さ: 5=血縁, 4=師弟（師匠）, 3=師弟（弟子）/兄弟弟子, 2=同一門, 1=同郷・同学校 */
+  /** 関係の濃さ: 5=手動えにし最高, 4=師弟, 3=兄弟弟子/手動, 2=同高校・同大学・同期, 1=同郷・一門 */
   weight: number;
 }
 

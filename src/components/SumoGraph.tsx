@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { GraphData, GraphNode, GraphLink } from "@/types";
-import { LINK_COLORS } from "@/constants/linkColors";
+import { LINK_COLORS, ENISHI_COLOR } from "@/constants/linkColors";
 import { drawElectricEdge } from "@/utils/electricEdge";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
@@ -529,7 +529,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
       const src = getLinkEndId(l.source);
       const tgt = getLinkEndId(l.target);
       const w = l.weight ?? 1;
-      const base = LINK_COLORS[l.type] ?? "#6b7280";
+      const base = LINK_COLORS[l.type] ?? ENISHI_COLOR;
 
       // ホバー中ペアかどうか（同ペア内の全エッジを全部光らせる）
       const isHoveredPair = hoveredPair !== null && (
@@ -642,7 +642,7 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
         ctx,
         src.x, src.y,
         tgt.x, tgt.y,
-        LINK_COLORS[l.type] ?? "#6b7280",
+        LINK_COLORS[l.type] ?? ENISHI_COLOR,
         l.weight ?? 1,
       );
     },
@@ -691,9 +691,9 @@ export default function SumoGraph({ graphData, onNodeClick, onBackgroundClick, s
           <div className="flex items-center gap-2 font-semibold">
             <div
               className="w-4 h-0.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: LINK_COLORS[hoveredDisplayLink.type] ?? "#6b7280" }}
+              style={{ backgroundColor: LINK_COLORS[hoveredDisplayLink.type] ?? ENISHI_COLOR }}
             />
-            <span style={{ color: LINK_COLORS[hoveredDisplayLink.type] ?? "#d6d3d1" }}>
+            <span style={{ color: LINK_COLORS[hoveredDisplayLink.type] ?? ENISHI_COLOR }}>
               {hoveredDisplayLink.type}
             </span>
           </div>
