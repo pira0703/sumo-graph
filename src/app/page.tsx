@@ -44,9 +44,22 @@ const EMPTY_FILTER: FilterState = {
 };
 
 function applyTheme(theme: CuratedTheme): FilterState {
-  const base = { ...EMPTY_FILTER, ...theme.filter } as FilterState;
-  if (theme.showAllRanks) base.rankDivisions = [];
-  return base;
+  const f = theme.filter ?? {};
+  const toArr = <T,>(v: T[] | null | undefined, fallback: T[]): T[] =>
+    Array.isArray(v) ? v : fallback;
+  return {
+    heyas:           toArr(f.heyas, []),
+    ichimons:        toArr(f.ichimons, []),
+    relation_types:  toArr(f.relation_types, []),
+    era:             f.era ?? "現役",
+    rankDivisions:   theme.showAllRanks ? [] : toArr(f.rankDivisions, ["幕内", "十両"]),
+    educations:      toArr(f.educations, []),
+    regions:         toArr(f.regions, []),
+    ageGroups:       toArr(f.ageGroups, []),
+    careerTrends:    toArr(f.careerTrends, []),
+    careerStages:    toArr(f.careerStages, []),
+    promotionSpeeds: toArr(f.promotionSpeeds, []),
+  };
 }
 
 const TODAY = new Date();
@@ -254,9 +267,9 @@ function HomePageContent() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      for (const id of f.heyas) params.append("heya", id);
-      for (const name of f.ichimons) params.append("ichimon", name);
-      for (const rt of f.relation_types) params.append("relation_type", rt);
+      for (const id of (f.heyas ?? [])) params.append("heya", id);
+      for (const name of (f.ichimons ?? [])) params.append("ichimon", name);
+      for (const rt of (f.relation_types ?? [])) params.append("relation_type", rt);
       if (f.era !== "全員") params.set("era", f.era);
       const res  = await fetch(`/api/graph?${params}`);
       const data = await res.json();

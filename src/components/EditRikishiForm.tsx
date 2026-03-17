@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type {
   Rikishi, Heya, OyakataMaster, OyakataNameHistory,
   RikishiStatus, HeyaRole, OyakataHistoryReason, BanzukeEntry, Basho,
+  RelationType,
 } from "@/types";
 import SchoolCombobox from "@/components/SchoolCombobox";
+import RikishiCombobox from "@/components/RikishiCombobox";
 import Link from "next/link";
 
 // ─── 定数 ────────────────────────────────────────────────────────────────────
@@ -27,7 +29,7 @@ const TAKE_REASONS: OyakataHistoryReason[] = [
 
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
-type Tab = "basic" | "status" | "history";
+type Tab = "basic" | "status" | "enishi" | "shisho" | "history";
 
 // HistoryItem は OyakataNameHistory の alias（oyakata_master が JOIN で返る形式）
 type HistoryItem = OyakataNameHistory;
@@ -45,6 +47,27 @@ interface ModalForm {
   notes:             string;
   new_oyakata_master_id: string;
   transfer_date:     string;
+}
+
+// ─── えにし・師匠履歴の型 ─────────────────────────────────────────────────────
+
+interface RelationshipRow {
+  id:            string;
+  partner:       { id: string; shikona: string; photo_url: string | null; status: string } | null;
+  relation_type: RelationType;
+  description:   string | null;
+  created_at:    string;
+  direction:     "a" | "b";
+}
+
+interface ShishoHistoryRow {
+  id:         string;
+  shisho_id:  string;
+  shisho:     { id: string; shikona: string; photo_url: string | null } | null;
+  from_basho: string | null;
+  to_basho:   string | null;
+  notes:      string | null;
+  created_at: string;
 }
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -133,6 +156,139 @@ export default function EditRikishiForm({
     const s = rs === "east" ? "e" : rs === "west" ? "w" : "";
     return `${p}${n}${s}`;
   }
+
+  // ── えにし（relationships） ────────────────────────────────────────────────
+  const [enishi, setEnishi]           = useState<RelationshipRow[]>([]);
+  const [enishiLoaded, setEnishiLoaded] = useState(false);
+  const [enishiLoading, setEnishiLoading] = useState(false);
+  const [enishiModal, setEnishiModal] = useState(false);
+  const [enishiForm, setEnishiForm]   = useState({
+    partner_id:    null as string | null,
+    relation_type: "師弟（師匠）" as RelationType,
+    description:   "",
+  });
+
+  const RELATION_TYPES: RelationType[] = [
+    "師弟（師匠）", "師弟（弟子）", "親子・兄弟", "兄弟弟子",
+    "同郷", "土俵の青春（同高校）", "土俵の青春（同大学）",
+    "同期の絆（入門）", "親族", "一門の絆",
+  ];
+
+  async function loadEnishi() {
+    if (enishiLoaded) return;
+    setEnishiLoading(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/relationships`);
+      const data = await res.json();
+      setEnishi(data.relationships ?? []);
+      setEnishiLoaded(true);
+    } catch { /* ignore */ } finally { setEnishiLoading(false); }
+  }
+
+  async function addEnishi() {
+    if (!enishiForm.partner_id) { flash("err", "相手の力士を選んでください"); return; }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/relationships`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          partner_id:    enishiForm.partner_id,
+          relation_type: enishiForm.relation_type,
+          description:   enishiForm.description || null,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "登録失敗");
+      setEnishiModal(false);
+      setEnishiForm({ partner_id: null, relation_type: "師弟（師匠）", description: "" });
+      setEnishiLoaded(false);
+      await loadEnishi();
+      flash("ok", "えにしを登録しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setSaving(false); }
+  }
+
+  async function deleteEnishi(relId: string) {
+    if (!confirm("このえにしを削除しますか？")) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/relationships?rel_id=${relId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "削除失敗");
+      setEnishi(prev => prev.filter(r => r.id !== relId));
+      flash("ok", "えにしを削除しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setSaving(false); }
+  }
+
+  // ── 師匠履歴 ──────────────────────────────────────────────────────────────
+  const [shishoHistory, setShishoHistory]   = useState<ShishoHistoryRow[]>([]);
+  const [shishoLoaded, setShishoLoaded]     = useState(false);
+  const [shishoLoading, setShishoLoading]   = useState(false);
+  const [shishoModal, setShishoModal]       = useState(false);
+  const [shishoForm, setShishoForm]         = useState({
+    shisho_id:  null as string | null,
+    from_basho: "",
+    to_basho:   "",
+    notes:      "",
+  });
+
+  async function loadShishoHistory() {
+    if (shishoLoaded) return;
+    setShishoLoading(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/shisho-history`);
+      const data = await res.json();
+      setShishoHistory(data.shishoHistory ?? []);
+      setShishoLoaded(true);
+    } catch { /* ignore */ } finally { setShishoLoading(false); }
+  }
+
+  async function addShishoHistory() {
+    if (!shishoForm.shisho_id) { flash("err", "師匠を選んでください"); return; }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/shisho-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shisho_id:  shishoForm.shisho_id,
+          from_basho: shishoForm.from_basho || null,
+          to_basho:   shishoForm.to_basho   || null,
+          notes:      shishoForm.notes      || null,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "登録失敗");
+      setShishoModal(false);
+      setShishoForm({ shisho_id: null, from_basho: "", to_basho: "", notes: "" });
+      setShishoLoaded(false);
+      await loadShishoHistory();
+      flash("ok", "師匠履歴を登録しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setSaving(false); }
+  }
+
+  async function deleteShishoHistory(histId: string) {
+    if (!confirm("この師匠履歴を削除しますか？")) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/shisho-history?hist_id=${histId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "削除失敗");
+      setShishoHistory(prev => prev.filter(h => h.id !== histId));
+      flash("ok", "師匠履歴を削除しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setSaving(false); }
+  }
+
+  // タブ切り替え時に遅延ロード
+  useEffect(() => {
+    if (tab === "enishi") loadEnishi();
+    if (tab === "shisho") loadShishoHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   // ── 名跡履歴 ─────────────────────────────────────────────────────────────
   const [history, setHistory] = useState<HistoryItem[]>(initialHistory);
@@ -316,10 +472,10 @@ export default function EditRikishiForm({
 
       {/* タブ */}
       <div className="flex gap-1 mb-6 border-b border-stone-800">
-        {(["basic", "status", "history"] as Tab[]).map(t => (
+        {(["basic", "status", "enishi", "shisho", "history"] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t ? "border-amber-500 text-amber-400" : "border-transparent text-stone-400 hover:text-white"}`}>
-            {t === "basic" ? "基本情報" : t === "status" ? "在籍状態" : "名跡履歴"}
+            {t === "basic" ? "基本情報" : t === "status" ? "在籍状態" : t === "enishi" ? "えにし" : t === "shisho" ? "師匠履歴" : "名跡履歴"}
           </button>
         ))}
       </div>
@@ -546,6 +702,175 @@ export default function EditRikishiForm({
                   </Link>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Tab: えにし ── */}
+      {tab === "enishi" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white font-medium">えにし（手動関係）</h3>
+            <button onClick={() => setEnishiModal(true)} className={`${CLS.btn} ${CLS.btnSecondary} text-xs`}>
+              ＋ えにしを追加
+            </button>
+          </div>
+          {enishiLoading && <p className="text-stone-500 text-sm text-center py-8">読み込み中…</p>}
+          {!enishiLoading && enishi.length === 0 && (
+            <div className="text-stone-500 text-sm text-center py-12 border border-dashed border-stone-800 rounded-lg">
+              まだえにしが登録されていません
+            </div>
+          )}
+          {!enishiLoading && enishi.length > 0 && (
+            <div className="space-y-2">
+              {enishi.map(r => (
+                <div key={r.id} className="p-4 rounded-lg border border-stone-700 bg-stone-900 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-amber-300 font-semibold text-sm">{r.partner?.shikona ?? "（不明）"}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-stone-800 text-stone-400">{r.relation_type}</span>
+                      {r.partner?.status === "retired" && <span className="text-xs text-stone-600">引退</span>}
+                    </div>
+                    {r.description && (
+                      <p className="text-stone-400 text-xs mt-1 leading-relaxed">{r.description}</p>
+                    )}
+                  </div>
+                  <button onClick={() => deleteEnishi(r.id)} className={`${CLS.btn} ${CLS.btnDanger} text-xs py-1 shrink-0`}>削除</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* えにし追加モーダル */}
+          {enishiModal && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 w-full max-w-sm space-y-4">
+                <h3 className="text-white font-bold">えにしを追加</h3>
+                <div>
+                  <label className={CLS.label}>相手の力士 *</label>
+                  <RikishiCombobox
+                    value={enishiForm.partner_id}
+                    onChange={(id) => setEnishiForm(p => ({ ...p, partner_id: id }))}
+                    placeholder="四股名で検索"
+                    emptyLabel="（選択してください）"
+                  />
+                </div>
+                <div>
+                  <label className={CLS.label}>関係種別 *</label>
+                  <select className={CLS.input} value={enishiForm.relation_type}
+                    onChange={e => setEnishiForm(p => ({ ...p, relation_type: e.target.value as RelationType }))}>
+                    {RELATION_TYPES.map(rt => <option key={rt} value={rt}>{rt}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={CLS.label}>えにしの説明（任意）</label>
+                  <textarea
+                    className={CLS.input + " h-20 resize-none"}
+                    value={enishiForm.description}
+                    onChange={e => setEnishiForm(p => ({ ...p, description: e.target.value }))}
+                    placeholder="例：高校相撲時代からの旧知。同じ青森出身で切磋琢磨した。"
+                  />
+                </div>
+                <div className="flex gap-2 justify-end pt-2">
+                  <button onClick={() => setEnishiModal(false)} className={`${CLS.btn} ${CLS.btnSecondary}`}>キャンセル</button>
+                  <button onClick={addEnishi} disabled={saving} className={`${CLS.btn} ${CLS.btnPrimary}`}>
+                    {saving ? "登録中…" : "追加する"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Tab: 師匠履歴 ── */}
+      {tab === "shisho" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-white font-medium">師匠履歴</h3>
+              <p className="text-stone-500 text-xs mt-0.5">
+                現在の師匠: {rikishi.shisho_id ? <span className="text-amber-400">登録済み</span> : <span className="text-stone-600">未設定</span>}
+              </p>
+            </div>
+            <button onClick={() => setShishoModal(true)} className={`${CLS.btn} ${CLS.btnSecondary} text-xs`}>
+              ＋ 師匠を追加
+            </button>
+          </div>
+          {shishoLoading && <p className="text-stone-500 text-sm text-center py-8">読み込み中…</p>}
+          {!shishoLoading && shishoHistory.length === 0 && (
+            <div className="text-stone-500 text-sm text-center py-12 border border-dashed border-stone-800 rounded-lg">
+              師匠履歴がありません
+              <p className="text-xs mt-1 text-stone-600">migration 016 をまだ適用していない場合は Supabase で実行してください</p>
+            </div>
+          )}
+          {!shishoLoading && shishoHistory.length > 0 && (
+            <div className="space-y-2">
+              {shishoHistory.map(h => {
+                const isCurrent = !h.to_basho;
+                return (
+                  <div key={h.id} className={`p-4 rounded-lg border ${isCurrent ? "border-amber-700 bg-amber-950/30" : "border-stone-700 bg-stone-900"}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-semibold">{h.shisho?.shikona ?? "（不明）"}</span>
+                          {isCurrent && <span className="text-xs px-1.5 py-0.5 bg-amber-900 text-amber-300 rounded">現在</span>}
+                        </div>
+                        <div className="text-stone-400 text-xs mt-1">
+                          {h.from_basho ?? "（不明）"} 〜 {h.to_basho ?? "現在"}
+                        </div>
+                        {h.notes && <div className="text-stone-500 text-xs">{h.notes}</div>}
+                      </div>
+                      <button onClick={() => deleteShishoHistory(h.id)} className={`${CLS.btn} ${CLS.btnDanger} text-xs py-1 shrink-0`}>削除</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 師匠追加モーダル */}
+          {shishoModal && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 w-full max-w-sm space-y-4">
+                <h3 className="text-white font-bold">師匠を追加</h3>
+                <div>
+                  <label className={CLS.label}>師匠 *</label>
+                  <RikishiCombobox
+                    value={shishoForm.shisho_id}
+                    onChange={(id) => setShishoForm(p => ({ ...p, shisho_id: id }))}
+                    placeholder="師匠の四股名で検索"
+                    emptyLabel="（選択してください）"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={CLS.label}>師弟関係 開始場所</label>
+                    <input className={CLS.input} value={shishoForm.from_basho}
+                      onChange={e => setShishoForm(p => ({ ...p, from_basho: e.target.value }))}
+                      placeholder="例: 2010-01" />
+                  </div>
+                  <div>
+                    <label className={CLS.label}>終了場所（現在は空欄）</label>
+                    <input className={CLS.input} value={shishoForm.to_basho}
+                      onChange={e => setShishoForm(p => ({ ...p, to_basho: e.target.value }))}
+                      placeholder="例: 2020-03" />
+                  </div>
+                </div>
+                <div>
+                  <label className={CLS.label}>備考</label>
+                  <input className={CLS.input} value={shishoForm.notes}
+                    onChange={e => setShishoForm(p => ({ ...p, notes: e.target.value }))}
+                    placeholder="例：師匠交代、廃部など" />
+                </div>
+                <div className="flex gap-2 justify-end pt-2">
+                  <button onClick={() => setShishoModal(false)} className={`${CLS.btn} ${CLS.btnSecondary}`}>キャンセル</button>
+                  <button onClick={addShishoHistory} disabled={saving} className={`${CLS.btn} ${CLS.btnPrimary}`}>
+                    {saving ? "登録中…" : "追加する"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
