@@ -96,6 +96,7 @@ export default function EditRikishiForm({
   const [msg, setMsg]                 = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [computingRank, setComputingRank] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [pastedRef, setPastedRef] = useState<{ dataUrl: string } | null>(null);
 
   // ── 基本情報フォーム ──────────────────────────────────────────────────────
   const [basic, setBasic] = useState({
@@ -313,14 +314,39 @@ export default function EditRikishiForm({
   async function generateAiImage() {
     setGeneratingImage(true);
     try {
-      const res = await fetch(`/api/rikishi/${rikishi.id}/generate-image`, { method: "POST" });
+      const body: Record<string, unknown> = {};
+      if (pastedRef) {
+        // ペースト画像がある場合: base64 を API に渡す（img2img のリファレンスとして使用）
+        body.reference_image_data_url = pastedRef.dataUrl;
+      }
+      const res = await fetch(`/api/rikishi/${rikishi.id}/generate-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "生成失敗");
       setBasic(p => ({ ...p, photo_url: data.photo_url }));
-      flash("ok", "AI画像を生成・登録しました");
+      setPastedRef(null); // 生成完了後にクリア
+      flash("ok", `AI画像を生成しました（${data.mode === "img2img" ? "参照あり" : "テキストのみ"}）`);
     } catch (e) {
       flash("err", e instanceof Error ? e.message : "エラー");
     } finally { setGeneratingImage(false); }
+  }
+
+  // ── スクショペースト処理 ──────────────────────────────────────────────────
+  function handlePhotoPaste(e: React.ClipboardEvent) {
+    const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/"));
+    if (!item) return;
+    e.preventDefault();
+    const blob = item.getAsFile();
+    if (!blob) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setPastedRef({ dataUrl });
+    };
+    reader.readAsDataURL(blob);
   }
 
   // ── ユーティリティ ────────────────────────────────────────────────────────
@@ -579,19 +605,49 @@ export default function EditRikishiForm({
               <button type="button" onClick={generateAiImage} disabled={generatingImage || saving}
                 className="text-xs px-2 py-0.5 rounded bg-purple-900 hover:bg-purple-800 text-purple-200 disabled:opacity-40 transition-colors flex items-center gap-1">
                 {generatingImage ? (
-                  <><span className="animate-spin inline-block">⟳</span> 生成中（10〜20秒）…</>
-                ) : "✨ AI画像を生成"}
+                  <><span className="animate-spin inline-block">⟳</span> 生成中（20〜30秒）…</>
+                ) : (pastedRef ? "✨ この画像をAI加工" : "✨ AI画像を生成")}
               </button>
             </div>
+
+            {/* スクショ貼り付けエリア */}
+            <div
+              onPaste={handlePhotoPaste}
+              tabIndex={0}
+              className={`rounded-lg border-2 border-dashed p-3 text-center text-xs cursor-pointer transition-colors outline-none focus:border-purple-600 ${
+                pastedRef
+                  ? "border-purple-600 bg-purple-950/30"
+                  : "border-stone-700 bg-stone-900/50 hover:border-stone-600"
+              }`}
+            >
+              {pastedRef ? (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={pastedRef.dataUrl} alt="参照画像" className="w-16 h-16 object-cover rounded-lg shrink-0" />
+                  <div className="text-left">
+                    <p className="text-purple-300 font-medium">参照画像セット済み</p>
+                    <p className="text-stone-500 mt-0.5">この画像を元にAI加工します</p>
+                    <button type="button" onClick={() => setPastedRef(null)}
+                      className="text-red-400 hover:text-red-300 text-xs mt-1 underline">クリア</button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-stone-500">
+                  ここをクリックして <kbd className="bg-stone-800 px-1 rounded">⌘V</kbd> でスクショを貼り付け
+                  <span className="block mt-0.5 text-stone-600">貼り付けた画像を参照してAI生成します</span>
+                </p>
+              )}
+            </div>
+
+            {/* 現在の登録写真 */}
             <div className="flex gap-3 items-start">
               {basic.photo_url && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={basic.photo_url} alt="写真プレビュー"
                   className="w-16 h-16 rounded-lg object-cover border border-stone-700 shrink-0" />
               )}
-              <input className={CLS.input} value={basic.photo_url} onChange={setB("photo_url")} placeholder="画像URLを直接入力、またはAI生成ボタンを使用" />
+              <input className={CLS.input} value={basic.photo_url} onChange={setB("photo_url")} placeholder="画像URLを直接入力" />
             </div>
-            <p className="text-stone-600 text-xs">AI生成には FAL_KEY の設定が必要です（fal.ai）</p>
           </div>
           <div>
             <label className={CLS.label}>Wikipedia URL</label>
