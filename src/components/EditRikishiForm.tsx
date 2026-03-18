@@ -151,6 +151,68 @@ export default function EditRikishiForm({
     return `${p}${n}${s}`;
   }
 
+  // ── 番付履歴（個人起点 CRUD） ──────────────────────────────────────────────
+  const [banzukeHistory, setBanzukeHistory]       = useState<BanzukeEntry[]>([]);
+  const [banzukeHistLoaded, setBanzukeHistLoaded] = useState(false);
+  const [banzukeHistLoading, setBanzukeHistLoading] = useState(false);
+  const [banzukeModal, setBanzukeModal]           = useState(false);
+  const [banzukeForm, setBanzukeForm]             = useState({
+    basho: "", rank_class: "", rank_number: "", rank_side: "",
+  });
+
+  async function loadBanzukeHistory() {
+    if (banzukeHistLoaded) return;
+    setBanzukeHistLoading(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/banzuke?all=1`);
+      const data = await res.json();
+      setBanzukeHistory(data.history ?? []);
+      setBanzukeHistLoaded(true);
+    } catch { /* ignore */ } finally { setBanzukeHistLoading(false); }
+  }
+
+  async function saveBanzukeEntry() {
+    if (!banzukeForm.basho || !banzukeForm.rank_class) {
+      flash("err", "場所と番付は必須です"); return;
+    }
+    setSaving(true);
+    try {
+      const display = autoDisplay(banzukeForm.rank_class, banzukeForm.rank_number, banzukeForm.rank_side);
+      const res = await fetch(`/api/rikishi/${rikishi.id}/banzuke`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          basho:        banzukeForm.basho,
+          rank_class:   banzukeForm.rank_class,
+          rank_number:  banzukeForm.rank_number ? parseInt(banzukeForm.rank_number) : null,
+          rank_side:    banzukeForm.rank_side || null,
+          rank_display: display || null,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "保存失敗");
+      setBanzukeModal(false);
+      setBanzukeForm({ basho: "", rank_class: "", rank_number: "", rank_side: "" });
+      setBanzukeHistLoaded(false);
+      await loadBanzukeHistory();
+      flash("ok", "番付を登録しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setSaving(false); }
+  }
+
+  async function deleteBanzukeEntry(basho: string) {
+    if (!confirm(`${basho} の番付を削除しますか？`)) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/rikishi/${rikishi.id}/banzuke?basho=${basho}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "削除失敗");
+      setBanzukeHistory(prev => prev.filter(b => b.basho !== basho));
+      flash("ok", "削除しました");
+    } catch (e) {
+      flash("err", e instanceof Error ? e.message : "エラー");
+    } finally { setSaving(false); }
+  }
+
   // ── えにし（enishi N:N） ───────────────────────────────────────────────────
   const [enishi, setEnishi]               = useState<EnishiRow[]>([]);
   const [enishiLoaded, setEnishiLoaded]   = useState(false);
@@ -281,6 +343,7 @@ export default function EditRikishiForm({
 
   // タブ切り替え時に遅延ロード
   useEffect(() => {
+    if (tab === "status") loadBanzukeHistory();
     if (tab === "enishi") loadEnishi();
     if (tab === "shisho") loadShishoHistory();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -809,6 +872,65 @@ export default function EditRikishiForm({
               )}
             </div>
           )}
+
+          {/* ── 番付履歴（個人起点 CRUD） ── */}
+          <div className="mt-6 pt-6 border-t border-stone-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-medium text-sm">番付履歴</h3>
+              <button
+                onClick={() => {
+                  setBanzukeForm({ basho: "", rank_class: "", rank_number: "", rank_side: "" });
+                  setBanzukeModal(true);
+                }}
+                className={`${CLS.btn} ${CLS.btnSecondary} text-xs`}
+              >
+                ＋ 追加
+              </button>
+            </div>
+
+            {banzukeHistLoading && (
+              <p className="text-stone-500 text-sm text-center py-4">読み込み中…</p>
+            )}
+            {!banzukeHistLoading && banzukeHistory.length === 0 && (
+              <p className="text-stone-600 text-sm text-center py-4">登録された番付履歴はありません</p>
+            )}
+            {!banzukeHistLoading && banzukeHistory.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-stone-500 text-xs border-b border-stone-800">
+                      <th className="text-left pb-2 pr-3">場所</th>
+                      <th className="text-left pb-2 pr-3">番付</th>
+                      <th className="text-left pb-2 pr-3">東西</th>
+                      <th className="pb-2 w-12"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {banzukeHistory.map(h => (
+                      <tr key={h.basho} className="border-b border-stone-900 hover:bg-stone-900/50">
+                        <td className="py-2 pr-3 text-stone-300">{h.basho}</td>
+                        <td className="py-2 pr-3 text-amber-300 font-medium">
+                          {h.rank_display ??
+                            autoDisplay(h.rank_class ?? "", String(h.rank_number ?? ""), h.rank_side ?? "")}
+                        </td>
+                        <td className="py-2 pr-3 text-stone-400 text-xs">
+                          {h.rank_side === "east" ? "東" : h.rank_side === "west" ? "西" : "―"}
+                        </td>
+                        <td className="py-2 text-right">
+                          <button
+                            onClick={() => deleteBanzukeEntry(h.basho)}
+                            className="text-red-500 hover:text-red-400 text-xs px-2 py-0.5 rounded hover:bg-red-900/30 transition-colors"
+                          >
+                            削除
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1091,6 +1213,79 @@ export default function EditRikishiForm({
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── 番付追加モーダル ── */}
+      {banzukeModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 w-full max-w-sm space-y-4">
+            <h3 className="text-white font-bold text-base">番付を追加</h3>
+
+            <div>
+              <label className={CLS.label}>場所</label>
+              <select
+                className={CLS.input}
+                value={banzukeForm.basho}
+                onChange={e => setBanzukeForm(f => ({ ...f, basho: e.target.value }))}
+              >
+                <option value="">場所を選択</option>
+                {[...bashoList].sort((a, b) => b.id.localeCompare(a.id)).map(b => (
+                  <option key={b.id} value={b.id}>{b.name ?? b.id}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={CLS.label}>番付クラス</label>
+              <select
+                className={CLS.input}
+                value={banzukeForm.rank_class}
+                onChange={e => setBanzukeForm(f => ({ ...f, rank_class: e.target.value, rank_number: "" }))}
+              >
+                <option value="">選択してください</option>
+                {RANK_OPTIONS.map(([v, label]) => (
+                  <option key={v} value={v}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+            {["maegashira", "juryo", "makushita", "sandanme", "jonidan", "jonokuchi"].includes(banzukeForm.rank_class) && (
+              <div>
+                <label className={CLS.label}>枚数</label>
+                <input
+                  type="number"
+                  min={1}
+                  className={CLS.input}
+                  value={banzukeForm.rank_number}
+                  onChange={e => setBanzukeForm(f => ({ ...f, rank_number: e.target.value }))}
+                  placeholder="例: 3"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className={CLS.label}>東西</label>
+              <select
+                className={CLS.input}
+                value={banzukeForm.rank_side}
+                onChange={e => setBanzukeForm(f => ({ ...f, rank_side: e.target.value }))}
+              >
+                <option value="">―</option>
+                <option value="east">東</option>
+                <option value="west">西</option>
+              </select>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <button onClick={() => setBanzukeModal(false)} className={`${CLS.btn} ${CLS.btnSecondary}`}>
+                キャンセル
+              </button>
+              <button onClick={saveBanzukeEntry} disabled={saving} className={`${CLS.btn} ${CLS.btnPrimary}`}>
+                {saving ? "保存中…" : "登録"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

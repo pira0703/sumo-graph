@@ -35,6 +35,24 @@ export async function GET(req: Request, { params }: Params) {
   return NextResponse.json({ banzuke: data ?? null });
 }
 
+// ─── DELETE: 番付エントリを削除 (?basho=YYYY-MM) ─────────────────────────────
+export async function DELETE(req: Request, { params }: Params) {
+  const { id } = await params;
+  const { searchParams } = new URL(req.url);
+  const basho = searchParams.get("basho");
+  if (!basho) return NextResponse.json({ error: "basho は必須です" }, { status: 400 });
+
+  const supabase = createServerClient();
+  const { error } = await supabase
+    .from("banzuke")
+    .delete()
+    .eq("rikishi_id", id)
+    .eq("basho", basho);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}
+
 // ─── PUT: 番付を upsert (rikishi_id + basho の UNIQUE 制約で上書き) ────────────
 export async function PUT(req: Request, { params }: Params) {
   const { id } = await params;
