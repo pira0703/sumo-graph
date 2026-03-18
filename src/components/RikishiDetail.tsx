@@ -254,7 +254,7 @@ export default function RikishiDetail({ rikishiId, onClose, onNavigate, canEdit 
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl border-t sm:absolute sm:top-0 sm:bottom-auto sm:left-auto sm:right-0 sm:h-full sm:w-80 sm:rounded-t-none sm:border-t-0 sm:border-l overflow-y-auto z-30 sm:z-10 flex flex-col"
+      className="fixed bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl border-t z-30 sm:static sm:h-full sm:w-80 sm:flex-shrink-0 sm:rounded-none sm:border-t-0 sm:border-l sm:z-auto overflow-y-auto flex flex-col"
       style={{ backgroundColor: "var(--white)", borderColor: "var(--border)" }}
     >
       {/* ヘッダー */}

@@ -559,14 +559,14 @@ function HomePageContent() {
           onBackgroundClick={() => setSelectedId(null)}
           selectedNodeId={selectedId}
         />
-
-        <RikishiDetail
-          rikishiId={selectedId}
-          onClose={() => setSelectedId(null)}
-          onNavigate={(id) => setSelectedId(id)}
-          canEdit={canEdit}
-        />
       </div>
+
+      <RikishiDetail
+        rikishiId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onNavigate={(id) => setSelectedId(id)}
+        canEdit={canEdit}
+      />
     </div>
   );
 }
